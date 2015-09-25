@@ -1,0 +1,10 @@
+Shuttle		Zii-devel-b
+-------         -------------------------
+eth10		lan0     Switch 0, port 0
+eth11		lan1     Switch 0, port 1
+eth12		lan2     Switch 0, port 2
+eth13		lan3     Switch 1, port 0
+eth14		lan4     Switch 1, port 1
+eth15		lan5     Switch 1, port 2
+eth16		lan6     Switch 2, port 0
+eth17		optical3 Switch 2, port 3
