@@ -15,7 +15,7 @@ HOST = None
 CONFIG = None
 
 
-class ping_individual_test(unittest2.TestCase):
+class ping_bridges_4_ports_test(unittest2.TestCase):
     '''Class containing the test cases'''
 
     def setUp(self):
