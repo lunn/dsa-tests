@@ -8,6 +8,7 @@ import params
 import sut
 import time
 import unittest2
+import xmlrunner
 
 
 SUT = None
@@ -78,7 +79,7 @@ class ping_bridges_4_ports_test(unittest2.TestCase):
         self.sut.addAddress('br0', '192.168.10.2/24')
 
         # Wait the forwarding delay of the bridge
-        time.sleep(5)
+        time.sleep(7)
 
         self.assertTrue(self.host.ping('192.168.10.2'))
         self.assertTrue(self.host.ping('192.168.11.2'))
@@ -199,6 +200,13 @@ if __name__ == '__main__':
     SUT = sut.SUT(hostname=CONFIG.hostname, key=CONFIG.key)
     SUT.cleanSystem()
     HOST = host.HOST()
+
+    if args.xml:
+        testRunner = unittest.TextTestRunner
+    else:
+        testRunner = xmlrunner.XMLTestRunner(output='test-reports')
+
     unittest2.main(failfast=args.failfast, verbosity=args.verbose,
-                   buffer=False)
+                   buffer=False,
+                   testRunner=testRunner)
     HOST.cleanSystem()

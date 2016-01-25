@@ -6,6 +6,7 @@ import params
 import sut
 import time
 import unittest2
+import xmlrunner
 
 
 SUT = None
@@ -113,6 +114,13 @@ if __name__ == '__main__':
     SUT = sut.SUT(hostname=CONFIG.hostname, key=CONFIG.key)
     SUT.cleanSystem()
     HOST = host.HOST()
+
+    if args.xml:
+        testRunner = unittest.TextTestRunner
+    else:
+        testRunner = xmlrunner.XMLTestRunner(output='test-reports')
+
     unittest2.main(failfast=args.failfast, verbosity=args.verbose,
-                   buffer=False)
+                   buffer=False,
+                   testRunner=testRunner)
     HOST.cleanSystem()

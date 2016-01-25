@@ -6,6 +6,8 @@ import sut
 import time
 import traffic
 import unittest2
+import xmlrunner
+
 
 zero_stats = {
     'rx_pkts': 0L,
@@ -479,5 +481,12 @@ if __name__ == '__main__':
     SUT = sut.SUT(hostname=CONFIG.hostname, key=CONFIG.key)
     SUT.cleanSystem()
     TRAFFIC = traffic.Traffic()
+
+    if args.xml:
+        testRunner = unittest.TextTestRunner
+    else:
+        testRunner = xmlrunner.XMLTestRunner(output='test-reports')
+
     unittest2.main(failfast=args.failfast, verbosity=args.verbose,
-                   buffer=False)
+                   buffer=False,
+                   testRunner=testRunner)
