@@ -88,11 +88,9 @@ if __name__ == '__main__':
     HOST = host.HOST()
 
     if args.xml:
-        testRunner = unittest.TextTestRunner
+        testRunner = xmlrunner.XMLTestRunner(output='test-reports', verbosity=args.verbose)
     else:
-        testRunner = xmlrunner.XMLTestRunner(output='test-reports')
+        testRunner = unittest2.TextTestRunner(failfast=args.failfast, verbosity=args.verbose)
 
-    unittest2.main(failfast=args.failfast, verbosity=args.verbose,
-                   buffer=False,
-                   testRunner=testRunner)
+    unittest2.main(buffer=False, testRunner=testRunner)
     HOST.cleanSystem()
