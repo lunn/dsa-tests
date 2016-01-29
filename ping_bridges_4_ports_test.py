@@ -6,6 +6,7 @@
 import host
 import params
 import sut
+import sys
 import time
 import unittest2
 import xmlrunner
@@ -208,3 +209,5 @@ if __name__ == '__main__':
 
     unittest2.main(buffer=False, testRunner=testRunner)
     HOST.cleanSystem()
+
+    sys.exit(0)
