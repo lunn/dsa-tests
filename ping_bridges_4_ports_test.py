@@ -207,7 +207,5 @@ if __name__ == '__main__':
     else:
         testRunner = unittest2.TextTestRunner(failfast=args.failfast, verbosity=args.verbose)
 
-    unittest2.main(buffer=False, testRunner=testRunner)
+    unittest2.main(buffer=False, testRunner=testRunner, exit=False)
     HOST.cleanSystem()
-
-    sys.exit(0)
