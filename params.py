@@ -61,7 +61,7 @@ def params():
                         default=False, action='store_true')
     parser.add_argument("--xml",
                         help='Output results in XML',
-                        default=False, action='store_false')
+                        default=False, action='store_true')
     args = parser.parse_args()
     del sys.argv[1:]
     return args
