@@ -95,7 +95,6 @@ class ping_bridges_test(unittest2.TestCase):
         self.assertTrue(self.host.ping('192.168.16.2'))
         self.assertTrue(self.host.ping('192.168.17.2'))
 
-    @unittest2.skip("skipping")
     def test_03_lan0_br0(self):
         """Create a bridge and place only lan0 in it. Move lan0
            IP address to the bridge"""
@@ -117,7 +116,6 @@ class ping_bridges_test(unittest2.TestCase):
         self.assertTrue(self.host.ping('192.168.16.2'))
         self.assertTrue(self.host.ping('192.168.17.2'))
 
-    @unittest2.skip("skipping")
     def test_04_lan2_br2(self):
         """Create a bridge and place only lan2 in it. Move lan2
            IP address to the bridge"""
@@ -139,7 +137,6 @@ class ping_bridges_test(unittest2.TestCase):
         self.assertTrue(self.host.ping('192.168.16.2'))
         self.assertTrue(self.host.ping('192.168.17.2'))
 
-    @unittest2.skip("skipping")
     def test_05_lan4_br4(self):
         """Create a bridge and place only lan4 in it. Move lan4
            IP address to the bridge"""
@@ -161,7 +158,6 @@ class ping_bridges_test(unittest2.TestCase):
         self.assertTrue(self.host.ping('192.168.16.2'))
         self.assertTrue(self.host.ping('192.168.17.2'))
 
-    @unittest2.skip("skipping")
     def test_06_lan6_br6(self):
         """Create a bridge and place only lan6 in it. Move lan6
            IP address to the bridge"""
@@ -183,7 +179,6 @@ class ping_bridges_test(unittest2.TestCase):
         self.assertTrue(self.host.ping('192.168.16.2'))
         self.assertTrue(self.host.ping('192.168.17.2'))
 
-    @unittest2.skip("skipping")
     def test_07_remove_br0(self):
         """Remove br0 and place the IP address back on lan0"""
         self.sut.down('br0')
@@ -199,7 +194,6 @@ class ping_bridges_test(unittest2.TestCase):
         self.assertTrue(self.host.ping('192.168.16.2'))
         self.assertTrue(self.host.ping('192.168.17.2'))
 
-    @unittest2.skip("skipping")
     def test_08_remove_br2(self):
         """Remove br2 and place the IP address back on lan2"""
         self.sut.down('br2')
@@ -215,7 +209,6 @@ class ping_bridges_test(unittest2.TestCase):
         self.assertTrue(self.host.ping('192.168.16.2'))
         self.assertTrue(self.host.ping('192.168.17.2'))
 
-    @unittest2.skip("skipping")
     def test_09_remove_br4(self):
         """Remove br4 and place the IP address back on lan4"""
         self.sut.down('br4')
@@ -231,7 +224,6 @@ class ping_bridges_test(unittest2.TestCase):
         self.assertTrue(self.host.ping('192.168.16.2'))
         self.assertTrue(self.host.ping('192.168.17.2'))
 
-    @unittest2.skip("skipping")
     def test_09_remove_br6(self):
         """Remove br6 and place the IP address back on lan6"""
         self.sut.down('br6')
@@ -247,7 +239,6 @@ class ping_bridges_test(unittest2.TestCase):
         self.assertTrue(self.host.ping('192.168.16.2'))
         self.assertTrue(self.host.ping('192.168.17.2'))
 
-    @unittest2.skip("skipping")
     def test_99_ping_down(self):
         """Down the interfaces on the SUT and then ping the SUT.
            We don't expect replies from any interfaces"""
@@ -274,7 +265,7 @@ class ping_bridges_test(unittest2.TestCase):
 
 if __name__ == '__main__':
     args = params.params()
-    CONFIG = params.readConfig(args.config)
+    CONFIG = params.readConfig(args.config, fourPorts=False)
     SUT = sut.SUT(hostname=CONFIG.hostname, key=CONFIG.key)
     SUT.cleanSystem()
     HOST = host.HOST()
