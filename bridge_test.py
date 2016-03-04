@@ -113,7 +113,7 @@ class bridge_test(unittest2.TestCase):
         self.sut.up(self.config.SUT_LAN7)
         self.sut.up(self.config.SUT_LAN8)
         self.sut.up(self.config.SUT_OPTICAL3)
-        self.sut.up(self.config.SUT_OPTICAL3)
+        self.sut.up(self.config.SUT_OPTICAL4)
 
         self.sut.addBridge('br1')
         self.sut.up('br1')
@@ -327,7 +327,6 @@ class bridge_test(unittest2.TestCase):
         self.assertEqual(stats_lan6, tx_40_stats)
         self.assertEqual(stats_optical3, zero_stats)
 
-    @unittest2.skip("skipping")
     def test_08_bridged_broadcast_lan0(self):
         """Send traffic between bridged ports, and ensure they come out the
            expected ports. lan0 is the source of broadcast packets"""
@@ -344,15 +343,14 @@ class bridge_test(unittest2.TestCase):
         stats_optical3 = self.traffic.getStats(self.config.HOST_OPTICAL3)
 
         self.assertEqual(stats_lan0, tx_10_stats)
-        self.assertEqual(stats_lan1, rx_10_stats)
-        self.assertEqual(stats_lan2, rx_10_stats)
-        self.assertEqual(stats_lan3, rx_10_stats)
+        self.assertEqual(stats_lan1, zero_stats)
+        self.assertEqual(stats_lan2, zero_stats)
+        self.assertEqual(stats_lan3, zero_stats)
         self.assertEqual(stats_lan4, zero_stats)
-        self.assertEqual(stats_lan5, rx_10_stats)
+        self.assertEqual(stats_lan5, zero_stats)
         self.assertEqual(stats_lan6, zero_stats)
         self.assertEqual(stats_optical3, zero_stats)
 
-    @unittest2.skip("skipping")
     def test_09_bridged_broadcast_lan1(self):
         """Send traffic between bridged ports, and ensure they come out the
            expected ports. lan1 is the source of broadcast packets"""
@@ -368,16 +366,15 @@ class bridge_test(unittest2.TestCase):
         stats_lan6 = self.traffic.getStats(self.config.HOST_LAN6)
         stats_optical3 = self.traffic.getStats(self.config.HOST_OPTICAL3)
 
-        self.assertEqual(stats_lan0, rx_10_stats)
+        self.assertEqual(stats_lan0, zero_stats)
         self.assertEqual(stats_lan1, tx_10_stats)
         self.assertEqual(stats_lan2, rx_10_stats)
         self.assertEqual(stats_lan3, rx_10_stats)
-        self.assertEqual(stats_lan4, zero_stats)
-        self.assertEqual(stats_lan5, rx_10_stats)
-        self.assertEqual(stats_lan6, zero_stats)
+        self.assertEqual(stats_lan4, rx_10_stats)
+        self.assertEqual(stats_lan5, zero_stats)
+        self.assertEqual(stats_lan6, rx_10_stats)
         self.assertEqual(stats_optical3, zero_stats)
 
-    @unittest2.skip("skipping")
     def test_10_bridged_broadcast_lan2(self):
         """Send traffic between bridged ports, and ensure they come out the
            expected ports. lan2 is the source of broadcast packets"""
@@ -393,16 +390,15 @@ class bridge_test(unittest2.TestCase):
         stats_lan6 = self.traffic.getStats(self.config.HOST_LAN6)
         stats_optical3 = self.traffic.getStats(self.config.HOST_OPTICAL3)
 
-        self.assertEqual(stats_lan0, rx_10_stats)
+        self.assertEqual(stats_lan0, zero_stats)
         self.assertEqual(stats_lan1, rx_10_stats)
         self.assertEqual(stats_lan2, tx_10_stats)
         self.assertEqual(stats_lan3, rx_10_stats)
-        self.assertEqual(stats_lan4, zero_stats)
-        self.assertEqual(stats_lan5, rx_10_stats)
-        self.assertEqual(stats_lan6, zero_stats)
+        self.assertEqual(stats_lan4, rx_10_stats)
+        self.assertEqual(stats_lan5, zero_stats)
+        self.assertEqual(stats_lan6, rx_10_stats)
         self.assertEqual(stats_optical3, zero_stats)
 
-    @unittest2.skip("skipping")
     def test_11_bridged_broadcast_lan3(self):
         """Send traffic between bridged ports, and ensure they come out the
            expected ports. lan3 is the source of broadcast packets"""
@@ -418,16 +414,15 @@ class bridge_test(unittest2.TestCase):
         stats_lan6 = self.traffic.getStats(self.config.HOST_LAN6)
         stats_optical3 = self.traffic.getStats(self.config.HOST_OPTICAL3)
 
-        self.assertEqual(stats_lan0, rx_10_stats)
+        self.assertEqual(stats_lan0, zero_stats)
         self.assertEqual(stats_lan1, rx_10_stats)
         self.assertEqual(stats_lan2, rx_10_stats)
         self.assertEqual(stats_lan3, tx_10_stats)
-        self.assertEqual(stats_lan4, zero_stats)
-        self.assertEqual(stats_lan5, rx_10_stats)
-        self.assertEqual(stats_lan6, zero_stats)
+        self.assertEqual(stats_lan4, rx_10_stats)
+        self.assertEqual(stats_lan5, zero_stats)
+        self.assertEqual(stats_lan6, rx_10_stats)
         self.assertEqual(stats_optical3, zero_stats)
 
-    @unittest2.skip("skipping")
     def test_12_bridged_broadcast_lan5(self):
         """Send traffic between bridged ports, and ensure they come out the
            expected ports. lan5 is the source of broadcast packets"""
@@ -443,16 +438,39 @@ class bridge_test(unittest2.TestCase):
         stats_lan6 = self.traffic.getStats(self.config.HOST_LAN6)
         stats_optical3 = self.traffic.getStats(self.config.HOST_OPTICAL3)
 
-        self.assertEqual(stats_lan0, rx_10_stats)
-        self.assertEqual(stats_lan1, rx_10_stats)
-        self.assertEqual(stats_lan2, rx_10_stats)
-        self.assertEqual(stats_lan3, tx_10_stats)
+        self.assertEqual(stats_lan0, zero_stats)
+        self.assertEqual(stats_lan1, zero_stats)
+        self.assertEqual(stats_lan2, zero_stats)
+        self.assertEqual(stats_lan3, zero_stats)
         self.assertEqual(stats_lan4, zero_stats)
-        self.assertEqual(stats_lan5, rx_10_stats)
+        self.assertEqual(stats_lan5, tx_10_stats)
         self.assertEqual(stats_lan6, zero_stats)
         self.assertEqual(stats_optical3, zero_stats)
 
-    @unittest2.skip("skipping")
+    def test_13_bridged_broadcast_lan6(self):
+        """Send traffic between bridged ports, and ensure they come out the
+           expected ports. lan6 is the source of broadcast packets"""
+        self.traffic.addUDPBroadcastStream(self.config.HOST_LAN6, 10, 10)
+        self.traffic.run()
+
+        stats_lan0 = self.traffic.getStats(self.config.HOST_LAN0)
+        stats_lan1 = self.traffic.getStats(self.config.HOST_LAN1)
+        stats_lan2 = self.traffic.getStats(self.config.HOST_LAN2)
+        stats_lan3 = self.traffic.getStats(self.config.HOST_LAN3)
+        stats_lan4 = self.traffic.getStats(self.config.HOST_LAN4)
+        stats_lan5 = self.traffic.getStats(self.config.HOST_LAN5)
+        stats_lan6 = self.traffic.getStats(self.config.HOST_LAN6)
+        stats_optical3 = self.traffic.getStats(self.config.HOST_OPTICAL3)
+
+        self.assertEqual(stats_lan0, zero_stats)
+        self.assertEqual(stats_lan1, rx_10_stats)
+        self.assertEqual(stats_lan2, rx_10_stats)
+        self.assertEqual(stats_lan3, rx_10_stats)
+        self.assertEqual(stats_lan4, rx_10_stats)
+        self.assertEqual(stats_lan5, zero_stats)
+        self.assertEqual(stats_lan6, tx_10_stats)
+        self.assertEqual(stats_optical3, zero_stats)
+
     def test_99_delete_bridge(self):
         """Destroy the bridge"""
         self.sut.deleteBridgeInterface('br1', self.config.SUT_LAN1)
@@ -471,8 +489,8 @@ class bridge_test(unittest2.TestCase):
         self.sut.down(self.config.SUT_LAN6)
         self.sut.down(self.config.SUT_LAN7)
         self.sut.down(self.config.SUT_LAN8)
-        self.sut.down(self.config.OPTICAL3)
-        self.sut.down(self.config.OPTICAL4)
+        self.sut.down(self.config.SUT_OPTICAL3)
+        self.sut.down(self.config.SUT_OPTICAL4)
 
 
 if __name__ == '__main__':
