@@ -4,6 +4,13 @@ import re
 import paramiko
 
 DEBUG = False
+STATS_FILES = ['collisions', 'multicast', 'rx_bytes', 'rx_compressed',
+               'rx_crc_errors', 'rx_dropped', 'rx_errors', 'rx_fifo_errors',
+               'rx_frame_errors', 'rx_length_errors', 'rx_missed_errors',
+               'rx_over_errors', 'rx_packets', 'tx_aborted_errors',
+               'tx_bytes', 'tx_carrier_errors', 'tx_compressed',
+               'tx_dropped', 'tx_errors', 'tx_fifo_errors',
+               'tx_heartbeat_errors', 'tx_packets', 'tx_window_errors']
 
 
 def dbg_print(args):
@@ -156,7 +163,7 @@ class SUT(object):
         self.checkExitCode(0)
 
     def deleteBridgeInterface(self, bridge, interface):
-        """Deleye an interface from a bridge"""
+        """Delete an interface from a bridge"""
         if bridge not in self.interfaces:
             raise NameError('deleteBridgeInterface called for unknown bridge')
         if bridge not in self.getBridges():
@@ -166,6 +173,75 @@ class SUT(object):
                 'deleteBridgeInterface called for unknown interface')
         self.ssh('brctl delif {0} {1}'.format(bridge, interface))
         self.checkExitCode(0)
+
+    def _statsCheckRange(self, before, after, _range, unittest):
+        """Perform the check that the statistics are within range"""
+        delta = {}
+        for key in after.keys():
+            delta[key] = after[key] - before[key]
+        for key in _range.keys():
+            unittest.assertTrue(delta[key] >= _range[key][0],
+                                '{0}={1} not between {2}-{3}'.format(
+                                    key, delta[key],
+                                    _range[key][0], _range[key][1]))
+            unittest.assertTrue(delta[key] <= _range[key][1],
+                                '{0}={1} not between {2}-{3}'.format(
+                                    key, delta[key],
+                                    _range[key][0], _range[key][1]))
+
+    def getEthtoolStats(self, interface):
+        """Get the Ethtool statistics from an interface.
+
+           NOTE: These statistics are not standardised in any way. The
+           names will differ from driver to driver. It is best to use
+           these for information only."""
+        stats = {}
+        pattern = re.compile('(.+): ([0-9]+)')
+        if interface not in self.interfaces:
+            raise NameError(
+                'getEthtoolStats called for unknown interface')
+        results = self.ssh('ethtool -S {0}'.format(interface))
+        for line in results.splitlines():
+            match = pattern.match(line)
+            if match:
+                key = match.group(1).strip()
+                value = int(match.group(2))
+                stats[key] = value
+        return stats
+
+    def checkEthtoolStatsRange(self, interface, before, _range, unittest):
+        """Check that the stats have incremented within the expect range."""
+        after = self.getEthtoolStats(interface)
+        self._statsCheckRange(before, after, _range, unittest)
+
+    def _getNumberContents(self, filename):
+        """Return the contents of the file"""
+        pattern = re.compile('([a-z0-9]+).*')
+        result = self.ssh('cat {0}'.format(filename))
+        match = pattern.match(result)
+        if match:
+            return int(match.group(1))
+        return None
+
+    def getClassStats(self, interface):
+        """Get the interface class stats.
+
+           These values are standardized, so should be portable
+           between drivers. We will see..."""
+        stats = {}
+        if interface not in self.interfaces:
+            raise NameError(
+                'getClassStats called for unknown interface')
+        for stat in STATS_FILES:
+            value = self._getNumberContents(
+                '/sys/class/net/{0}/statistics/{1}'.format(interface, stat))
+            stats[stat] = value
+        return stats
+
+    def checkClassStatsRange(self, interface, before, _range, unittest):
+        """Check that the stats have incremented within the expect range."""
+        after = self.getClassStats(interface)
+        self._statsCheckRange(before, after, _range, unittest)
 
     def cleanSystem(self):
         """Clean the system i.e. remove all bridges, check there are no bonds,
