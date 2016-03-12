@@ -2,12 +2,13 @@
 """Ping individual interfaces of SUT. Assumes all four port are on the
 same switch"""
 
-import host
-import params
-import sut
 import time
 import unittest2
 import xmlrunner
+
+import host
+import params
+import sut
 
 
 SUT = None

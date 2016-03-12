@@ -3,12 +3,13 @@
    interface as member and the IP address that would normally be on
    the interface is placed on the bridge."""
 
-import host
-import params
-import sut
 import time
 import unittest2
 import xmlrunner
+
+import host
+import params
+import sut
 
 
 SUT = None

@@ -1,12 +1,13 @@
 #!/usr/bin/env python
 """Ping individual interfaces of SUT"""
 
-import host
-import params
-import sut
 import time
 import unittest2
 import xmlrunner
+
+import host
+import params
+import sut
 
 
 SUT = None

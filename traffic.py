@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 """Create streams and receive packets"""
+# pylint: disable=E1101
 
 import sys
 import time

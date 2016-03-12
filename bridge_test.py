@@ -1,12 +1,13 @@
 #!/usr/bin/env python
 """Test the operation of a bridge on the SUT"""
 
-import params
-import sut
 import time
-import traffic
 import unittest2
 import xmlrunner
+
+import params
+import sut
+import traffic
 
 
 zero_stats = {

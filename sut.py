@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """Model the System Under Test"""
-import paramiko
 import re
+import paramiko
 
 DEBUG = False
 
@@ -27,7 +27,7 @@ class SUT(object):
         """Execute a command on the SUT, using SSH"""
         self.exit_code = None
         pattern = re.compile('exit code ([a-z0-9]+)')
-        stdin, stdout, stderr = self.sshClient.exec_command(
+        _, stdout, stderr = self.sshClient.exec_command(
             command + '; echo exit code $? ; exit\n')
         results = stdout.read()
         self.error = stderr.read()
