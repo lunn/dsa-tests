@@ -15,6 +15,9 @@ SUT = None
 HOST = None
 CONFIG = None
 
+CLASS_TX_RX_8 = {'tx_packets': (8, 12),
+                 'rx_packets': (8, 12)}
+
 
 class ping_individual_test(unittest2.TestCase):
     '''Class containing the test cases'''
@@ -63,10 +66,17 @@ class ping_individual_test(unittest2.TestCase):
 
     def test_02_ping(self):
         """Ping the SUT. We expect replies for all interfaces"""
+
+        class_stats_eth1 = self.sut.getClassStats(self.config.SUT_MASTER)
+
         self.assertTrue(self.host.ping('192.168.10.2'))
         self.assertTrue(self.host.ping('192.168.11.2'))
         self.assertTrue(self.host.ping('192.168.12.2'))
         self.assertTrue(self.host.ping('192.168.13.2'))
+
+        self.sut.checkClassStatsRange(self.config.SUT_MASTER,
+                                      class_stats_eth1,
+                                      CLASS_TX_RX_8, self)
 
     def test_03_ping_down(self):
         """Down the interfaces on the SUT and then ping the SUT.
