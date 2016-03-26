@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 """Model the System Under Test"""
+import pprint
 import re
 import paramiko
 
@@ -181,13 +182,15 @@ class SUT(object):
             delta[key] = after[key] - before[key]
         for key in _range.keys():
             unittest.assertTrue(delta[key] >= _range[key][0],
-                                '{0}={1} not between {2}-{3}'.format(
+                                '{0}={1} not between {2}-{3}\n{4}'.format(
                                     key, delta[key],
-                                    _range[key][0], _range[key][1]))
+                                    _range[key][0], _range[key][1],
+                                    pprint.pformat(delta)))
             unittest.assertTrue(delta[key] <= _range[key][1],
-                                '{0}={1} not between {2}-{3}'.format(
+                                '{0}={1} not between {2}-{3}\n{4}'.format(
                                     key, delta[key],
-                                    _range[key][0], _range[key][1]))
+                                    _range[key][0], _range[key][1],
+                                    pprint.pformat(delta)))
 
     def getEthtoolStats(self, interface):
         """Get the Ethtool statistics from an interface.

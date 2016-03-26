@@ -94,6 +94,29 @@ class_tx_rx_30 = {'tx_packets': (30, 34),
 class_tx_rx_40 = {'tx_packets': (40, 44),
                   'rx_packets': (40, 44)}
 
+ethtool_zero = {'rx_packets': (0, 4),
+                'in_unicast': (0, 4),
+                'tx_packets': (0, 4),
+                'out_unicast': (0, 4)}
+
+ethtool_rx_0_broadcast_5 = {'rx_packets': (5, 9),
+                            'in_broadcasts': (5, 9),
+                            'tx_packets': (0, 4),
+                            'out_unicast': (0, 4)}
+
+ethtool_rx_5_broadcast_5 = {'rx_packets': (10, 14),
+                            'in_broadcasts': (5, 9),
+                            'in_unicast': (5, 9),
+                            'tx_packets': (0, 4),
+                            'out_unicast': (0, 4)}
+
+ethtool_tx_10 = {'in_unicast': (0, 4),
+                 'out_unicast': (10, 14)}
+
+ethtool_rx_40 = {'in_unicast': (40, 44),
+                 'out_unicast': (0, 4)}
+
+
 SUT = None
 TRAFFIC = None
 CONFIG = None
@@ -154,6 +177,17 @@ class bridge_test(unittest2.TestCase):
         """lan0, lan5, and optical3 are not a member of a bridge. Send
            traffic on these ports, and make sure there is no traffic
            sent out other ports"""
+
+        ethtool_stats_lan0 = self.sut.getEthtoolStats(self.config.SUT_LAN0)
+        ethtool_stats_lan1 = self.sut.getEthtoolStats(self.config.SUT_LAN1)
+        ethtool_stats_lan2 = self.sut.getEthtoolStats(self.config.SUT_LAN2)
+        ethtool_stats_lan3 = self.sut.getEthtoolStats(self.config.SUT_LAN3)
+        ethtool_stats_lan4 = self.sut.getEthtoolStats(self.config.SUT_LAN4)
+        ethtool_stats_lan5 = self.sut.getEthtoolStats(self.config.SUT_LAN5)
+        ethtool_stats_lan6 = self.sut.getEthtoolStats(self.config.SUT_LAN6)
+        ethtool_stats_optical3 = self.sut.getEthtoolStats(
+            self.config.SUT_OPTICAL3)
+
         self.traffic.addUDPStream(self.config.HOST_LAN5,
                                   self.config.HOST_LAN0, 5, 5)
         self.traffic.addUDPStream(self.config.HOST_OPTICAL3,
@@ -181,11 +215,45 @@ class bridge_test(unittest2.TestCase):
         self.assertEqual(stats_lan6, zero_stats)
         self.assertEqual(stats_optical3, tx_10_stats)
 
+        self.sut.checkEthtoolStatsRange(self.config.SUT_LAN0,
+                                        ethtool_stats_lan0,
+                                        ethtool_rx_0_broadcast_5, self)
+        self.sut.checkEthtoolStatsRange(self.config.SUT_LAN1,
+                                        ethtool_stats_lan1,
+                                        ethtool_zero, self)
+        self.sut.checkEthtoolStatsRange(self.config.SUT_LAN2,
+                                        ethtool_stats_lan2,
+                                        ethtool_zero, self)
+        self.sut.checkEthtoolStatsRange(self.config.SUT_LAN3,
+                                        ethtool_stats_lan3,
+                                        ethtool_zero, self)
+        self.sut.checkEthtoolStatsRange(self.config.SUT_LAN4,
+                                        ethtool_stats_lan4,
+                                        ethtool_zero, self)
+        self.sut.checkEthtoolStatsRange(self.config.SUT_LAN5,
+                                        ethtool_stats_lan5,
+                                        ethtool_rx_5_broadcast_5, self)
+        self.sut.checkEthtoolStatsRange(self.config.SUT_LAN6,
+                                        ethtool_stats_lan6,
+                                        ethtool_zero, self)
+        self.sut.checkEthtoolStatsRange(self.config.SUT_OPTICAL3,
+                                        ethtool_stats_optical3,
+                                        ethtool_rx_5_broadcast_5, self)
+
     def test_03_bridged_unicast_lan1(self):
         """Send traffic between bridged ports, and ensure they come out the
            expected ports. lan1 is the source"""
 
         class_stats_master = self.sut.getClassStats(self.config.SUT_MASTER)
+        ethtool_stats_lan0 = self.sut.getEthtoolStats(self.config.SUT_LAN0)
+        ethtool_stats_lan1 = self.sut.getEthtoolStats(self.config.SUT_LAN1)
+        ethtool_stats_lan2 = self.sut.getEthtoolStats(self.config.SUT_LAN2)
+        ethtool_stats_lan3 = self.sut.getEthtoolStats(self.config.SUT_LAN3)
+        ethtool_stats_lan4 = self.sut.getEthtoolStats(self.config.SUT_LAN4)
+        ethtool_stats_lan5 = self.sut.getEthtoolStats(self.config.SUT_LAN5)
+        ethtool_stats_lan6 = self.sut.getEthtoolStats(self.config.SUT_LAN6)
+        ethtool_stats_optical3 = self.sut.getEthtoolStats(
+            self.config.SUT_OPTICAL3)
 
         self.traffic.addUDPStream(self.config.HOST_LAN1,
                                   self.config.HOST_LAN2, 10, 10)
@@ -219,6 +287,30 @@ class bridge_test(unittest2.TestCase):
         self.sut.checkClassStatsRange(self.config.SUT_MASTER,
                                       class_stats_master,
                                       class_tx_rx_30, self)
+        self.sut.checkEthtoolStatsRange(self.config.SUT_LAN0,
+                                        ethtool_stats_lan0,
+                                        ethtool_zero, self)
+        self.sut.checkEthtoolStatsRange(self.config.SUT_LAN1,
+                                        ethtool_stats_lan1,
+                                        ethtool_rx_40, self)
+        self.sut.checkEthtoolStatsRange(self.config.SUT_LAN2,
+                                        ethtool_stats_lan2,
+                                        ethtool_tx_10, self)
+        self.sut.checkEthtoolStatsRange(self.config.SUT_LAN3,
+                                        ethtool_stats_lan3,
+                                        ethtool_tx_10, self)
+        self.sut.checkEthtoolStatsRange(self.config.SUT_LAN4,
+                                        ethtool_stats_lan4,
+                                        ethtool_tx_10, self)
+        self.sut.checkEthtoolStatsRange(self.config.SUT_LAN5,
+                                        ethtool_stats_lan5,
+                                        ethtool_zero, self)
+        self.sut.checkEthtoolStatsRange(self.config.SUT_LAN6,
+                                        ethtool_stats_lan6,
+                                        ethtool_tx_10, self)
+        self.sut.checkEthtoolStatsRange(self.config.SUT_OPTICAL3,
+                                        ethtool_stats_optical3,
+                                        ethtool_zero, self)
 
     def test_04_bridged_unicast_lan2(self):
         """Send traffic between bridged ports, and ensure they come out the

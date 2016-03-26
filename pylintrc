@@ -41,7 +41,7 @@ load-plugins=
 # --enable=similarities". If you want to run only the classes checker, but have
 # no Warning level messages displayed, use"--disable=all --enable=classes
 # --disable=W"
-disable=I0011,W0603,W0403,R0903,R0801,C0103,R0913,E1121,R0201,R0904,C0302,R0915,R0902,R0204
+disable=I0011,W0603,W0403,R0903,R0801,C0103,R0913,E1121,R0201,R0904,C0302,R0915,R0902,R0204, R0914
 
 
 [REPORTS]
