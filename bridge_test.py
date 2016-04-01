@@ -94,6 +94,9 @@ class_tx_rx_30 = {'tx_packets': (30, 34),
 class_tx_rx_40 = {'tx_packets': (40, 44),
                   'rx_packets': (40, 44)}
 
+class_tx_rx_0 =  {'tx_packets': (0, 4),
+                  'rx_packets': (0, 4)}
+
 ethtool_zero = {'rx_packets': (0, 4),
                 'in_unicast': (0, 4),
                 'tx_packets': (0, 4),
@@ -462,7 +465,7 @@ class bridge_test(unittest2.TestCase):
 
         self.sut.checkClassStatsRange(self.config.SUT_MASTER,
                                       class_stats_master,
-                                      class_tx_rx_40, self)
+                                      class_tx_rx_0, self)
 
     def test_08_bridged_broadcast_lan0(self):
         """Send traffic between bridged ports, and ensure they come out the
