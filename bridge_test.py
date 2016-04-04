@@ -94,8 +94,8 @@ class_tx_rx_30 = {'tx_packets': (30, 34),
 class_tx_rx_40 = {'tx_packets': (40, 44),
                   'rx_packets': (40, 44)}
 
-class_tx_rx_0 =  {'tx_packets': (0, 4),
-                  'rx_packets': (0, 4)}
+class_tx_rx_0 = {'tx_packets': (0, 4),
+                 'rx_packets': (0, 4)}
 
 ethtool_zero = {'rx_packets': (0, 4),
                 'in_unicast': (0, 4),
@@ -467,7 +467,54 @@ class bridge_test(unittest2.TestCase):
                                       class_stats_master,
                                       class_tx_rx_0, self)
 
-    def test_08_bridged_broadcast_lan0(self):
+    def test_08_bridged_unicast_optical3(self):
+        """Add optical3 to the bridge, and test hardware bridging between
+           ports on switch 2."""
+
+        self.sut.addBridgeInterface('br1', self.config.SUT_OPTICAL3)
+
+        class_stats_master = self.sut.getClassStats(self.config.SUT_MASTER)
+
+        self.traffic.addUDPStream(self.config.HOST_OPTICAL3,
+                                  self.config.HOST_LAN1, 10, 10)
+        self.traffic.addUDPStream(self.config.HOST_OPTICAL3,
+                                  self.config.HOST_LAN2, 10, 10)
+        self.traffic.addUDPStream(self.config.HOST_OPTICAL3,
+                                  self.config.HOST_LAN3, 10, 10)
+        self.traffic.addUDPStream(self.config.HOST_OPTICAL3,
+                                  self.config.HOST_LAN6, 10, 10)
+        self.traffic.run()
+
+        stats_lan0 = self.traffic.getStats(self.config.HOST_LAN0)
+        stats_lan1 = self.traffic.getStats(self.config.HOST_LAN1)
+        stats_lan2 = self.traffic.getStats(self.config.HOST_LAN2)
+        stats_lan3 = self.traffic.getStats(self.config.HOST_LAN3)
+        stats_lan4 = self.traffic.getStats(self.config.HOST_LAN4)
+        stats_lan5 = self.traffic.getStats(self.config.HOST_LAN5)
+        stats_lan6 = self.traffic.getStats(self.config.HOST_LAN6)
+        stats_optical3 = self.traffic.getStats(self.config.HOST_OPTICAL3)
+
+        self.assertEqual(stats_lan0, zero_stats)
+        self.assertEqual(stats_lan1, rx_10_stats)
+        self.assertEqual(stats_lan2, rx_10_stats)
+        self.assertEqual(stats_lan3, rx_10_stats)
+        self.assertEqual(stats_lan4, zero_stats)
+        self.assertEqual(stats_lan5, zero_stats)
+        self.assertEqual(stats_lan6, rx_10_stats)
+        self.assertEqual(stats_optical3, tx_40_stats)
+
+        if self.hw_cross_chip:
+            self.sut.checkClassStatsRange(self.config.SUT_MASTER,
+                                          class_stats_master,
+                                          class_tx_rx_0, self)
+        else:
+            self.sut.checkClassStatsRange(self.config.SUT_MASTER,
+                                          class_stats_master,
+                                          class_tx_rx_30, self)
+
+        self.sut.deleteBridgeInterface('br1', self.config.SUT_OPTICAL3)
+
+    def test_09_bridged_broadcast_lan0(self):
         """Send traffic between bridged ports, and ensure they come out the
            expected ports. lan0 is the source of broadcast packets"""
         self.traffic.addUDPBroadcastStream(self.config.HOST_LAN0, 10, 10)
@@ -491,7 +538,7 @@ class bridge_test(unittest2.TestCase):
         self.assertEqual(stats_lan6, zero_stats)
         self.assertEqual(stats_optical3, zero_stats)
 
-    def test_09_bridged_broadcast_lan1(self):
+    def test_10_bridged_broadcast_lan1(self):
         """Send traffic between bridged ports, and ensure they come out the
            expected ports. lan1 is the source of broadcast packets"""
         self.traffic.addUDPBroadcastStream(self.config.HOST_LAN1, 10, 10)
@@ -515,7 +562,7 @@ class bridge_test(unittest2.TestCase):
         self.assertEqual(stats_lan6, rx_10_stats)
         self.assertEqual(stats_optical3, zero_stats)
 
-    def test_10_bridged_broadcast_lan2(self):
+    def test_11_bridged_broadcast_lan2(self):
         """Send traffic between bridged ports, and ensure they come out the
            expected ports. lan2 is the source of broadcast packets"""
         self.traffic.addUDPBroadcastStream(self.config.HOST_LAN2, 10, 10)
@@ -539,7 +586,7 @@ class bridge_test(unittest2.TestCase):
         self.assertEqual(stats_lan6, rx_10_stats)
         self.assertEqual(stats_optical3, zero_stats)
 
-    def test_11_bridged_broadcast_lan3(self):
+    def test_12_bridged_broadcast_lan3(self):
         """Send traffic between bridged ports, and ensure they come out the
            expected ports. lan3 is the source of broadcast packets"""
         self.traffic.addUDPBroadcastStream(self.config.HOST_LAN3, 10, 10)
@@ -563,7 +610,7 @@ class bridge_test(unittest2.TestCase):
         self.assertEqual(stats_lan6, rx_10_stats)
         self.assertEqual(stats_optical3, zero_stats)
 
-    def test_12_bridged_broadcast_lan5(self):
+    def test_13_bridged_broadcast_lan5(self):
         """Send traffic between bridged ports, and ensure they come out the
            expected ports. lan5 is the source of broadcast packets"""
         self.traffic.addUDPBroadcastStream(self.config.HOST_LAN5, 10, 10)
@@ -587,7 +634,7 @@ class bridge_test(unittest2.TestCase):
         self.assertEqual(stats_lan6, zero_stats)
         self.assertEqual(stats_optical3, zero_stats)
 
-    def test_13_bridged_broadcast_lan6(self):
+    def test_14_bridged_broadcast_lan6(self):
         """Send traffic between bridged ports, and ensure they come out the
            expected ports. lan6 is the source of broadcast packets"""
         self.traffic.addUDPBroadcastStream(self.config.HOST_LAN6, 10, 10)
