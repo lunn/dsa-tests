@@ -175,6 +175,26 @@ class SUT(object):
         self.ssh('brctl delif {0} {1}'.format(bridge, interface))
         self.checkExitCode(0)
 
+    def bridgeEnableVlanFiltering(self, bridge):
+        """Enable VLAN filtering on the bridge"""
+        if bridge not in self.interfaces:
+            raise NameError('deleteBridgeInterface called for unknown bridge')
+        if bridge not in self.getBridges():
+            raise NameError('deleteBridgeInterface called for unknown bridge')
+        self.ssh('echo 1 >/sys/class/net/{0}/bridge/vlan_filtering'.format(
+            bridge))
+        self.checkExitCode(0)
+
+    def bridgeDisableVlanFiltering(self, bridge):
+        """Disable VLAN filtering on the bridge"""
+        if bridge not in self.interfaces:
+            raise NameError('deleteBridgeInterface called for unknown bridge')
+        if bridge not in self.getBridges():
+            raise NameError('deleteBridgeInterface called for unknown bridge')
+        self.ssh('echo 0 >/sys/class/net/{0}/bridge/vlan_filtering'.format(
+            bridge))
+        self.checkExitCode(0)
+
     def _statsCheckRange(self, before, after, _range, unittest):
         """Perform the check that the statistics are within range"""
         delta = {}

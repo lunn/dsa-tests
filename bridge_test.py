@@ -102,15 +102,11 @@ ethtool_zero = {'rx_packets': (0, 4),
                 'tx_packets': (0, 4),
                 'out_unicast': (0, 4)}
 
-ethtool_rx_0_broadcast_5 = {'rx_packets': (5, 9),
-                            'in_broadcasts': (5, 9),
-                            'tx_packets': (0, 4),
+ethtool_rx_0_broadcast_5 = {'in_broadcasts': (5, 9),
                             'out_unicast': (0, 4)}
 
-ethtool_rx_5_broadcast_5 = {'rx_packets': (10, 14),
-                            'in_broadcasts': (5, 9),
+ethtool_rx_5_broadcast_5 = {'in_broadcasts': (5, 9),
                             'in_unicast': (5, 9),
-                            'tx_packets': (0, 4),
                             'out_unicast': (0, 4)}
 
 ethtool_tx_10 = {'in_unicast': (0, 4),
@@ -123,6 +119,7 @@ ethtool_rx_40 = {'in_unicast': (40, 44),
 SUT = None
 TRAFFIC = None
 CONFIG = None
+VLAN_FILTERING = False
 
 
 class bridge_test(unittest2.TestCase):
@@ -134,6 +131,7 @@ class bridge_test(unittest2.TestCase):
         self.traffic = TRAFFIC
         self.config = CONFIG
         self.maxDiff = None
+        self.vlan_filtering = VLAN_FILTERING
 
     def test_01_create_bridge(self):
         """Create the bridge"""
@@ -170,6 +168,9 @@ class bridge_test(unittest2.TestCase):
         self.traffic.addInterface(self.config.HOST_LAN5)
         self.traffic.addInterface(self.config.HOST_LAN6)
         self.traffic.addInterface(self.config.HOST_OPTICAL3)
+
+        if self.vlan_filtering:
+            self.sut.bridgeEnableVlanFiltering('br1')
 
     def test_01_learn(self):
         """Send learning packets, so the bridge knows which MAC address
@@ -433,8 +434,6 @@ class bridge_test(unittest2.TestCase):
         """Send traffic between bridged ports, and ensure they come out the
            expected ports. lan6 is the source"""
 
-        class_stats_master = self.sut.getClassStats(self.config.SUT_MASTER)
-
         self.traffic.addUDPStream(self.config.HOST_LAN6,
                                   self.config.HOST_LAN1, 10, 10)
         self.traffic.addUDPStream(self.config.HOST_LAN6,
@@ -463,17 +462,11 @@ class bridge_test(unittest2.TestCase):
         self.assertEqual(stats_lan6, tx_40_stats)
         self.assertEqual(stats_optical3, zero_stats)
 
-        self.sut.checkClassStatsRange(self.config.SUT_MASTER,
-                                      class_stats_master,
-                                      class_tx_rx_0, self)
-
     def test_08_bridged_unicast_optical3(self):
         """Add optical3 to the bridge, and test hardware bridging between
            ports on switch 2."""
 
         self.sut.addBridgeInterface('br1', self.config.SUT_OPTICAL3)
-
-        class_stats_master = self.sut.getClassStats(self.config.SUT_MASTER)
 
         self.traffic.addUDPStream(self.config.HOST_OPTICAL3,
                                   self.config.HOST_LAN1, 10, 10)
@@ -503,20 +496,12 @@ class bridge_test(unittest2.TestCase):
         self.assertEqual(stats_lan6, rx_10_stats)
         self.assertEqual(stats_optical3, tx_40_stats)
 
-        if self.hw_cross_chip:
-            self.sut.checkClassStatsRange(self.config.SUT_MASTER,
-                                          class_stats_master,
-                                          class_tx_rx_0, self)
-        else:
-            self.sut.checkClassStatsRange(self.config.SUT_MASTER,
-                                          class_stats_master,
-                                          class_tx_rx_30, self)
-
         self.sut.deleteBridgeInterface('br1', self.config.SUT_OPTICAL3)
 
     def test_09_bridged_broadcast_lan0(self):
         """Send traffic between bridged ports, and ensure they come out the
            expected ports. lan0 is the source of broadcast packets"""
+
         self.traffic.addUDPBroadcastStream(self.config.HOST_LAN0, 10, 10)
         self.traffic.run()
 
@@ -693,5 +678,7 @@ if __name__ == '__main__':
     else:
         testRunner = unittest2.TextTestRunner(failfast=args.failfast,
                                               verbosity=args.verbose)
+    if args.vlanfiltering:
+        VLAN_FILTERING = True
 
     unittest2.main(buffer=False, testRunner=testRunner, exit=False)
