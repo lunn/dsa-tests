@@ -120,6 +120,14 @@ class SUT(object):
             address, interface))
         self.checkExitCode(0)
 
+    def setMacAddress(self, interface, address):
+        """Set the MAC address on an interface"""
+        if interface not in self.interfaces:
+            raise NameError('setMacAddress called for unknown interface')
+        self.ssh('ip link set address {0} dev {1}'.format(
+            address, interface))
+        self.checkExitCode(0)
+
     def flushAddresses(self, interface):
         """Remove all addresses from an interface"""
         if interface not in self.interfaces:

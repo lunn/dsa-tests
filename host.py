@@ -37,6 +37,13 @@ class HOST(object):
         args = command.split(' ')
         return subprocess.call(args, stdin=None, stdout=null, stderr=null)
 
+    def _communicate(self, command):
+        """Execute a command and return a tuple of (stdout, stderr)"""
+        args = command.split(' ')
+        pipe = subprocess.Popen(args, stdin=None, stdout=subprocess.PIPE,
+                                stderr=subprocess.PIPE)
+        return pipe.communicate()
+
     def addInterface(self, interface):
         """Register a host interface to be used"""
         self.interfaces.append(interface)
@@ -73,6 +80,15 @@ class HOST(object):
         if ret == 0:
             return True
         return False
+
+    def arpGet(self, address):
+        """Return the MAC address ARP has determined for a given IP address"""
+        stdout, _ = self._communicate('arp {0}'.format(address))
+        for line in stdout.splitlines():
+            words = line.split()
+            if words[0] == address and words[1] == 'ether':
+                return words[2]
+        return None
 
     def cleanSystem(self):
         """Remove all addresses from the test interfaces, ensure they are
