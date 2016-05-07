@@ -10,6 +10,7 @@ from ostinato.protocols.mac_pb2 import mac
 from ostinato.protocols.eth2_pb2 import eth2
 from ostinato.protocols.ip4_pb2 import ip4
 from ostinato.protocols.udp_pb2 import udp
+from ostinato.protocols.textproto_pb2 import textProtocol
 
 DEBUG = False
 PP = pprint.PrettyPrinter(indent=4)
@@ -172,9 +173,9 @@ class Traffic(object):
         self._addIPHeader(stream, src_ip=src_ip, dst_ip=dst_ip)
         self._addUdpHeader(stream, 0x1234, 0x4321)
 
-        # Empty UDP payload
         proto = stream.protocol.add()
-        proto.protocol_id.id = ost_pb.Protocol.kPayloadFieldNumber
+        proto.protocol_id.id = ost_pb.Protocol.kTextProtocolFieldNumber
+        proto.Extensions[textProtocol].text = 'foo bar didily doo'
 
     def addUDPStream(self, src_interface_name, dst_interface_name,
                      num_packets, packets_per_sec):
