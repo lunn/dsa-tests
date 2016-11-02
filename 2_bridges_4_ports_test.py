@@ -96,6 +96,9 @@ ethtool_rx_30 = {'in_unicast': (30, 34),
 ethtool_tx_10 = {'in_unicast': (0, 4),
                  'out_unicast': (10, 14)}
 
+ethtool_tx_30 = {'in_unicast': (30, 34),
+                 'out_unicast': (30, 34)}
+
 SUT = None
 TRAFFIC = None
 CONFIG = None
@@ -166,20 +169,24 @@ class two_bridges_4_ports_test(unittest2.TestCase):
 
         self.assertEqual(stats_lan0, tx_30_stats)
         # Not obviouus: The destination MAC for LAN2 and LAN3 are not
-        # known, so the packets are flooded out LAN 1 as well.
-        #
-        # Humm, maybe we have a bug. With hardware bridging, no
-        # flooding happens :(
-        self.assertEqual(stats_lan1, rx_10_stats)
+        # known, so the packets are flooded out LAN 1 as
+        # well. However, it depends on the kernel configuration. With
+        # just 802.1d, the ATU/FID is shared, so it knows the MAC
+        # address is on a different port and so drops the packet. With
+        # 802.1d an 802.1q, they are separated, and so it floods.  So
+        # allow either to be a pass result.
+        self.assertTrue(stats_lan1 == rx_10_stats or
+                        stats_lan1 == rx_30_stats)
         self.assertEqual(stats_lan2, zero_stats)
         self.assertEqual(stats_lan3, zero_stats)
 
         self.sut.checkEthtoolStatsRange(self.config.SUT_LAN0,
                                         ethtool_stats_lan0,
                                         ethtool_rx_30, self)
-        self.sut.checkEthtoolStatsRange(self.config.SUT_LAN1,
-                                        ethtool_stats_lan1,
-                                        ethtool_tx_10, self)
+        self.sut.checkEthtoolStatsRangeOr(self.config.SUT_LAN1,
+                                          ethtool_stats_lan1,
+                                          ethtool_tx_10,
+                                          ethtool_tx_30, self)
         self.sut.checkEthtoolStatsRange(self.config.SUT_LAN2,
                                         ethtool_stats_lan2,
                                         ethtool_zero, self)
@@ -203,7 +210,8 @@ class two_bridges_4_ports_test(unittest2.TestCase):
         stats_lan2 = self.traffic.getStats(self.config.HOST_LAN2)
         stats_lan3 = self.traffic.getStats(self.config.HOST_LAN3)
 
-        self.assertEqual(stats_lan0, rx_10_stats)
+        self.assertTrue(stats_lan0 == rx_10_stats or
+                        stats_lan0 == rx_30_stats)
         self.assertEqual(stats_lan1, tx_30_stats)
         self.assertEqual(stats_lan2, zero_stats)
         self.assertEqual(stats_lan3, zero_stats)
@@ -227,7 +235,9 @@ class two_bridges_4_ports_test(unittest2.TestCase):
         self.assertEqual(stats_lan0, zero_stats)
         self.assertEqual(stats_lan1, zero_stats)
         self.assertEqual(stats_lan2, tx_30_stats)
-        self.assertEqual(stats_lan3, rx_10_stats)
+        self.assertTrue(stats_lan3 == rx_10_stats or
+                        stats_lan3 == rx_30_stats)
+
 
     def test_06_bridged_unicast_lan3(self):
         """Send traffic between bridged ports, and ensure they come out the
@@ -247,7 +257,8 @@ class two_bridges_4_ports_test(unittest2.TestCase):
 
         self.assertEqual(stats_lan0, zero_stats)
         self.assertEqual(stats_lan1, zero_stats)
-        self.assertEqual(stats_lan2, rx_10_stats)
+        self.assertTrue(stats_lan2 == rx_10_stats or
+                        stats_lan2 == rx_30_stats)
         self.assertEqual(stats_lan3, tx_30_stats)
 
     def test_07_bridged_broadcast_lan0(self):

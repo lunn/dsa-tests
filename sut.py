@@ -220,6 +220,56 @@ class SUT(object):
                                     _range[key][0], _range[key][1],
                                     pprint.pformat(delta)))
 
+    def _statsCheckRangeOne(self, key, value, _range):
+        """Return true if the value with within range"""
+        if key not in _range.keys():
+            return False
+        if value < _range[key][0]:
+            return False
+        if value > _range[key][1]:
+            return False
+        return True
+
+
+    def _statsCheckRangeFail(self, key, value, range1, range2, unittest):
+        """Test has failed, report why"""
+        if key in range1.keys() and key in range2.keys():
+            unittest.fail('{0}={1} not between {2}-{3} or {4}-{5}'.format(
+                key, value,
+                range1[key][0], range1[key][1],
+                range2[key][0], range2[key][1]))
+            return
+
+        if key in range1.keys():
+            unittest.fail('{0}={1} not between {2}-{3}'.format(
+                key, value,
+                range1[key][0], range1[key][1]))
+            return
+
+        if key in range2.keys():
+            unittest.fail('{0}={1} not between {2}-{3}'.format(
+                key, value,
+                range2[key][0], range2[key][1]))
+            return
+
+    def _statsCheckRangeOr(self, before, after, range1, range2, unittest):
+        """Perform the check that the statistics are within one of the other
+           range"""
+        delta = {}
+        for key in after.keys():
+            delta[key] = after[key] - before[key]
+        for key in range1.keys():
+            if not self._statsCheckRangeOne(key, delta[key], range1) and \
+               not self._statsCheckRangeOne(key, delta[key], range2):
+                self._statsCheckRangeFail(key, delta[key], range1, range2,
+                                          unittest)
+
+        for key in range2.keys():
+            if not self._statsCheckRangeOne(key, delta[key], range1) and \
+               not self._statsCheckRangeOne(key, delta[key], range2):
+                self._statsCheckRangeFail(key, delta[key], range1, range2,
+                                          unittest)
+
     def getEthtoolStats(self, interface):
         """Get the Ethtool statistics from an interface.
 
@@ -244,6 +294,13 @@ class SUT(object):
         """Check that the stats have incremented within the expect range."""
         after = self.getEthtoolStats(interface)
         self._statsCheckRange(before, after, _range, unittest)
+
+    def checkEthtoolStatsRangeOr(self, interface, before, range1, range2,
+                                 unittest):
+        """Check that the stats have incremented within one of the expect
+           ranges."""
+        after = self.getEthtoolStats(interface)
+        self._statsCheckRangeOr(before, after, range1, range2, unittest)
 
     def _getNumberContents(self, filename):
         """Return the contents of the file"""
