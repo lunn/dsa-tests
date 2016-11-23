@@ -33,7 +33,7 @@ class ping_individual_test(unittest2.TestCase):
         """Setup IP addresses on the SUT interfaces"""
 
         # Set a specific MAC address on one of the DSA ports
-        # self.sut.setMacAddress(self.config.SUT_LAN2, "ce:00:11:22:33:44")
+        self.sut.setMacAddress(self.config.SUT_LAN2, "ce:00:11:22:33:44")
 
         # Ensure all the interfaces are up
         self.sut.up(self.config.SUT_MASTER)
@@ -85,10 +85,10 @@ class ping_individual_test(unittest2.TestCase):
     def test_03_arp_check(self):
         """Check that the correct MAC address was used by the SUT"""
 
-        #mac = self.host.arpGet("192.168.12.2")
+        mac = self.host.arpGet("192.168.12.2")
 
-        #self.assertTrue(mac == "ce:00:11:22:33:44",
-        #                '{0} != "ce:00:11:22:33:44'.format(mac))
+        self.assertTrue(mac == "ce:00:11:22:33:44",
+                        '{0} != "ce:00:11:22:33:44'.format(mac))
 
     def test_04_ping_down(self):
         """Down the interfaces on the SUT and then ping the SUT.
@@ -118,4 +118,4 @@ if __name__ == '__main__':
                                               verbosity=args.verbose)
 
     unittest2.main(buffer=False, testRunner=testRunner, exit=False)
-    # HOST.cleanSystem()
+    HOST.cleanSystem()
