@@ -1,0 +1,67 @@
+- project:
+    name: 'Get the sources and tests'
+    jobs:
+      - '{number}_github_pull_linux':
+          downstream: '0102_github_pull_tests_master'
+          number: '0101'
+
+      - '{number}_github_pull_tests_{node}':
+          downstream: '0103_github_pull_tests_apu'
+          number: '0102'
+          node: 'master'
+
+      - '{number}_github_pull_tests_{node}':
+          downstream: '1000_370RD_link'
+          number: '0103'
+          node: 'apu'
+
+- project:
+    name: '370 RD tests'
+    target: '370RD'
+    hostname: '370-rd'
+    tftpboot_cmd: 'tftpboot-370-rd'
+    reboot_cmd: '370rd-reboot'
+    power_off_cmd: '370rd-off'
+    test_conf: '370-rd.conf'
+    test_path: '../0103_github_pull_tests_apu'
+    config_prefix: 'mvebu_v7'
+    job_prefix: '1'
+    node: 'apu'
+    reboot_node: 'apu'
+    link: '2000_SPU3_link'
+    jobs:
+      - '{name}-4_port_tests'
+
+- project:
+    name: 'SPU3 tests'
+    target: 'SPU3'
+    hostname: 'zii-spu3'
+    tftpboot_cmd: 'tftpboot-zii-spu3'
+    reboot_cmd: 'zii_spu3-reboot'
+    power_off_cmd: 'zii_spu3-off'
+    test_conf: 'zii_spu3.conf'
+    test_path: '../0103_github_pull_tests_apu'
+    config_prefix: 'zii_devel'
+    job_prefix: '2'
+    node: 'apu'
+    reboot_node: 'apu'
+    link: '3000_zii-debel-b_link'
+    jobs:
+      - '{name}-4_port_tests'
+
+- project:
+    name: 'ZII DEVEL B tests'
+    target: 'zii-devel-b'
+    hostname: 'zii-devel-b'
+    tftpboot_cmd: 'tftpboot-zii-devel-b'
+    reboot_cmd: 'zii_devel_b-reboot'
+    power_off_cmd: 'zii_devel_b-off'
+    test_conf: 'zii_devel_b.conf'
+    test_path: '.'
+    config_prefix: 'zii_devel'
+    job_prefix: '3'
+    node: 'master'
+    reboot_node: 'b3'
+    link: ''
+    jobs:
+      - '{name}-8_port_tests'

@@ -1,0 +1,20 @@
+- job-template:
+    name: '{number}_github_pull_linux'
+    defaults: global
+    description: 'Pull the kernel sources from github'
+    block-downstream: true
+    scm:
+      - git:
+          url: https://github.com/lunn/linux.git
+          branches:
+            - origin/master
+          basedir: linux
+          timeout: 30
+          wipe-workspace: false
+          clean:
+            before: false
+            after: false
+    publishers:
+      - trigger:
+          project: '{downstream}'
+          threshold: SUCCESS

@@ -1,0 +1,17 @@
+- job-template:
+    name: '{number}_{target}_reboot'
+    defaults: global
+    description: 'Reboot the target'
+    block-downstream: true
+    node: '{reboot_node}'
+    builders:
+      - shell: |
+         ssh {hostname} "nohup halt > /dev/null 2>&1 &" || true
+         sleep 10
+         {reboot_cmd}
+         sleep 45
+         ping -c 1 -w 60 {hostname}
+    publishers:
+      - trigger:
+          project: '{downstream}'
+          threshold: SUCCESS

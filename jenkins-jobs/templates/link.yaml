@@ -1,0 +1,10 @@
+- job-template:
+    name: '{number}_{target}_link'
+    defaults: global
+    description: 'Link between different targets tests'
+    block-downstream: true
+    node: '{node}'
+    publishers:
+      - trigger:
+          project: '{downstream}'
+          threshold: SUCCESS

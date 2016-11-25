@@ -1,0 +1,170 @@
+- job-group:
+    name: '{name}-8_port_tests'
+    jobs:
+      - '{number}_{target}_link':
+          downstream: '{job_prefix}020_{target}_{config_prefix}_dsa.config_compile_linux'
+          number: '{job_prefix}000'
+
+      # Plain DSA tests
+      - '{number}_{target}_{kernel_config}_compile_linux':
+          downstream: '{job_prefix}021_{target}_reboot'
+          number: '{job_prefix}020'
+          kernel_config: '{config_prefix}_dsa.config'
+
+      - '{number}_{target}_reboot':
+          downstream: '{job_prefix}022_{target}_ping_individual_4_ports_test'
+          number: '{job_prefix}021'
+
+      - '{number}_{target}_{test_name}_test':
+          downstream: '{job_prefix}023_{target}_ping_individual_test'
+          number: '{job_prefix}022'
+          test_name: 'ping_individual_4_ports'
+
+      - '{number}_{target}_{test_name}_test':
+          downstream: '{job_prefix}030_{target}_{config_prefix}_dsa-802.1d.config_compile_linux'
+          number: '{job_prefix}023'
+          test_name: 'ping_individual'
+
+      # DSA and bridge tests
+      - '{number}_{target}_{kernel_config}_compile_linux':
+          downstream: '{job_prefix}031_{target}_reboot'
+          number: '{job_prefix}030'
+          kernel_config: '{config_prefix}_dsa-802.1d.config'
+
+      - '{number}_{target}_reboot':
+          downstream: '{job_prefix}032_{target}_ping_individual_4_ports_test'
+          number: '{job_prefix}031'
+
+      - '{number}_{target}_{test_name}_test':
+          downstream: '{job_prefix}033_{target}_ping_individual_test'
+          number: '{job_prefix}032'
+          test_name: 'ping_individual_4_ports'
+
+      - '{number}_{target}_{test_name}_test':
+          downstream: '{job_prefix}034_{target}_ping_bridges_4_ports_test'
+          number: '{job_prefix}033'
+          test_name: 'ping_individual'
+
+      - '{number}_{target}_{test_name}_test':
+          downstream: '{job_prefix}035_{target}_ping_bridges_test'
+          number: '{job_prefix}034'
+          test_name: 'ping_bridges_4_ports'
+
+      - '{number}_{target}_{test_name}_test':
+          downstream: '{job_prefix}036_{target}_bridge_test'
+          number: '{job_prefix}035'
+          test_name: 'ping_bridges'
+
+      - '{number}_{target}_{test_name}_test':
+          downstream: '{job_prefix}037_{target}_2_bridges_4_ports_test'
+          number: '{job_prefix}036'
+          test_name: 'bridge'
+
+      - '{number}_{target}_{test_name}_test':
+          downstream: '{job_prefix}040_{target}_{config_prefix}_dsa-802.1q.config_compile_linux'
+          number: '{job_prefix}037'
+          test_name: '2_bridges_4_ports'
+
+      # DSA and vlan
+      - '{number}_{target}_{kernel_config}_compile_linux':
+          downstream: '{job_prefix}041_{target}_reboot'
+          number: '{job_prefix}040'
+          kernel_config: '{config_prefix}_dsa-802.1q.config'
+
+      - '{number}_{target}_reboot':
+          downstream: '{job_prefix}042_{target}_ping_individual_4_ports_test'
+          number: '{job_prefix}041'
+
+      - '{number}_{target}_{test_name}_test':
+          downstream: '{job_prefix}043_{target}_ping_individual_test'
+          number: '{job_prefix}042'
+          test_name: 'ping_individual_4_ports'
+
+      - '{number}_{target}_{test_name}_test':
+          downstream: '{job_prefix}050_{target}_{config_prefix}_dsa-802.1d-802.1q.config_compile_linux'
+          number: '{job_prefix}043'
+          test_name: 'ping_individual'
+
+      # DSA, bridge and vlan
+      - '{number}_{target}_{kernel_config}_compile_linux':
+          downstream: '{job_prefix}051_{target}_reboot'
+          number: '{job_prefix}050'
+          kernel_config: '{config_prefix}_dsa-802.1d-802.1q.config'
+
+      - '{number}_{target}_reboot':
+          downstream: '{job_prefix}052_{target}_ping_individual_4_ports_test'
+          number: '{job_prefix}051'
+
+      - '{number}_{target}_{test_name}_test':
+          downstream: '{job_prefix}053_{target}_ping_individual_test'
+          number: '{job_prefix}052'
+          test_name: 'ping_individual_4_ports'
+
+      - '{number}_{target}_{test_name}_test':
+          downstream: '{job_prefix}054_{target}_ping_bridges_4_ports_test'
+          number: '{job_prefix}053'
+          test_name: 'ping_individual'
+
+      - '{number}_{target}_{test_name}_test':
+          downstream: '{job_prefix}055_{target}_ping_bridges_test'
+          number: '{job_prefix}054'
+          test_name: 'ping_bridges_4_ports'
+
+      - '{number}_{target}_{test_name}_test':
+          downstream: '{job_prefix}056_{target}_bridge_test'
+          number: '{job_prefix}055'
+          test_name: 'ping_bridges'
+
+      - '{number}_{target}_{test_name}_test':
+          downstream: '{job_prefix}057_{target}_2_bridges_4_ports_test'
+          number: '{job_prefix}056'
+          test_name: 'bridge'
+
+      - '{number}_{target}_{test_name}_test':
+          downstream: '{job_prefix}060_{target}_{config_prefix}_dsa-802.1d-802.1q-vlan-filtering.config_compile_linux'
+          number: '{job_prefix}057'
+          test_name: '2_bridges_4_ports'
+
+      # DSA, bridge and vlan filtered
+      - '{number}_{target}_{kernel_config}_compile_linux':
+          downstream: '{job_prefix}061_{target}_reboot'
+          number: '{job_prefix}060'
+          kernel_config: '{config_prefix}_dsa-802.1d-802.1q-vlan-filtering.config'
+      - '{number}_{target}_reboot':
+          downstream: '{job_prefix}062_{target}_ping_individual_4_ports_test'
+          number: '{job_prefix}061'
+
+      - '{number}_{target}_{test_name}_test':
+          downstream: '{job_prefix}063_{target}_ping_individual_test'
+          number: '{job_prefix}062'
+          test_name: 'ping_individual_4_ports'
+
+      - '{number}_{target}_{test_name}_test':
+          downstream: '{job_prefix}064_{target}_ping_bridges_4_ports_test'
+          number: '{job_prefix}063'
+          test_name: 'ping_individual'
+
+      - '{number}_{target}_{test_name}_test':
+          downstream: '{job_prefix}065_{target}_ping_bridges_test'
+          number: '{job_prefix}064'
+          test_name: 'ping_bridges_4_ports'
+
+      - '{number}_{target}_{test_name}_test':
+          downstream: '{job_prefix}066_{target}_bridge_test'
+          number: '{job_prefix}065'
+          test_name: 'ping_bridges'
+
+      - '{number}_{target}_{test_name}_test':
+          downstream: '{job_prefix}067_{target}_2_bridges_4_ports_test'
+          number: '{job_prefix}066'
+          test_name: 'bridge'
+
+      - '{number}_{target}_{test_name}_test':
+          downstream: '{job_prefix}999_{target}_halt'
+          number: '{job_prefix}067'
+          test_name: '2_bridges_4_ports'
+
+      # All done, power off
+      - '{number}_{target}_halt':
+          number: '{job_prefix}999'
+          downstream: '{job_prefix}000_{target}'

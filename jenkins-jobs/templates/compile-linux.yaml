@@ -1,0 +1,19 @@
+- job-template:
+    name: '{number}_{target}_{kernel_config}_compile_linux'
+    defaults: global
+    description: 'Compile the linux source for a given configuration'
+    block-downstream: true
+    builders:
+      - shell: |
+         . armhf-env
+         cd linux
+         git checkout origin/dsa-ci
+         cp ../dsa-tests/configs/{kernel_config} .config
+         make oldconfig
+         make -j 8
+         {tftpboot_cmd}
+
+    publishers:
+      - trigger:
+          project: '{downstream}'
+          threshold: SUCCESS

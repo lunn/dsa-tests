@@ -1,0 +1,20 @@
+- job-template:
+    name: '{number}_github_pull_tests_{node}'
+    defaults: global
+    description: 'Pull the tests from github'
+    block-downstream: true
+    node: '{node}'
+    scm:
+      - git:
+          url: https://github.com/lunn/dsa-tests.git
+          branches:
+            - origin/master
+          basedir: dsa-tests
+          timeout: 1
+          clean:
+            before: false
+            after: false
+    publishers:
+      - trigger:
+          project: '{downstream}'
+          threshold: SUCCESS

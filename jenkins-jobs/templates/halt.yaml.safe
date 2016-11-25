@@ -1,0 +1,15 @@
+- job-template:
+    name: '{number}_{target}_halt'
+    defaults: global
+    description: 'halt the target, and power it off'
+    block-downstream: true
+    node: '{node}'
+    builders:
+      - shell: |
+         ssh {hostname} "nohup halt > /dev/null 2>&1 &"
+         sleep 10
+         {power_off_cmd}
+    publishers:
+      - trigger:
+          project: '{downstream}'
+          threshold: SUCCESS
