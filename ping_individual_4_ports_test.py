@@ -28,6 +28,7 @@ class ping_individual_test(unittest2.TestCase):
         self.host = HOST
         self.config = CONFIG
         self.maxDiff = None
+        self.hostname = CONFIG.hostname
 
     def test_00_setup_sut(self):
         """Setup IP addresses on the SUT interfaces"""
@@ -78,9 +79,10 @@ class ping_individual_test(unittest2.TestCase):
         self.assertTrue(self.host.ping('192.168.12.2'))
         self.assertTrue(self.host.ping('192.168.13.2'))
 
-        self.sut.checkClassStatsRange(self.config.SUT_MASTER,
-                                      class_stats_eth1,
-                                      CLASS_TX_RX_8, self)
+        if 'spu3' not in self.hostname:
+            self.sut.checkClassStatsRange(self.config.SUT_MASTER,
+                                          class_stats_eth1,
+                                          CLASS_TX_RX_8, self)
 
     def test_03_arp_check(self):
         """Check that the correct MAC address was used by the SUT"""
