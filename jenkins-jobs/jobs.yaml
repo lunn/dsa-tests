@@ -45,7 +45,7 @@
     job_prefix: '2'
     node: 'apu'
     reboot_node: 'apu'
-    link: '3000_zii-debel-b_link'
+    link: '3000_zii-devel-b_link'
     jobs:
       - '{name}-4_port_tests'
 
@@ -62,6 +62,23 @@
     job_prefix: '3'
     node: 'master'
     reboot_node: 'b3'
+    link: '4000_zii-devel-c_link'
+    jobs:
+      - '{name}-8_port_tests'
+
+- project:
+    name: 'ZII DEVEL C tests'
+    target: 'zii-devel-c'
+    hostname: 'zii-devel-c'
+    tftpboot_cmd: 'tftpboot-zii-devel-c'
+    reboot_cmd: 'zii_devel_c-reboot'
+    power_off_cmd: 'zii_devel_c-off'
+    test_conf: 'zii_devel_c.conf'
+    test_path: '../0103_github_pull_tests_apu'
+    config_prefix: 'zii_devel'
+    job_prefix: '4'
+    node: 'apu'
+    reboot_node: 'apu'
     link: ''
     jobs:
       - '{name}-8_port_tests'
