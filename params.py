@@ -38,10 +38,7 @@ def readConfig(filename, fourPorts=True):
         config['SUT_LAN4'] = parser.get('sut', 'lan4')
         config['SUT_LAN5'] = parser.get('sut', 'lan5')
         config['SUT_LAN6'] = parser.get('sut', 'lan6')
-        config['SUT_LAN7'] = parser.get('sut', 'lan7')
-        config['SUT_LAN8'] = parser.get('sut', 'lan8')
         config['SUT_OPTICAL3'] = parser.get('sut', 'optical3')
-        config['SUT_OPTICAL4'] = parser.get('sut', 'optical4')
 
     config['hostname'] = parser.get('sut', 'hostname')
     config['key'] = parser.get('sut', 'key')

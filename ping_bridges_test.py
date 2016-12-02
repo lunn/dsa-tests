@@ -38,10 +38,7 @@ class ping_bridges_test(unittest2.TestCase):
         self.sut.up(self.config.SUT_LAN4)
         self.sut.up(self.config.SUT_LAN5)
         self.sut.up(self.config.SUT_LAN6)
-        self.sut.up(self.config.SUT_LAN7)
-        self.sut.up(self.config.SUT_LAN8)
         self.sut.up(self.config.SUT_OPTICAL3)
-        self.sut.up(self.config.SUT_OPTICAL4)
 
         self.sut.addAddress(self.config.SUT_LAN0, '192.168.10.2/24')
         self.sut.addAddress(self.config.SUT_LAN1, '192.168.11.2/24')
@@ -250,10 +247,7 @@ class ping_bridges_test(unittest2.TestCase):
         self.sut.down(self.config.SUT_LAN4)
         self.sut.down(self.config.SUT_LAN5)
         self.sut.down(self.config.SUT_LAN6)
-        self.sut.down(self.config.SUT_LAN7)
-        self.sut.down(self.config.SUT_LAN8)
         self.sut.down(self.config.SUT_OPTICAL3)
-        self.sut.down(self.config.SUT_OPTICAL4)
 
         self.assertFalse(self.host.ping('192.168.10.2'))
         self.assertFalse(self.host.ping('192.168.11.2'))

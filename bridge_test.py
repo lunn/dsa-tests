@@ -144,10 +144,7 @@ class bridge_test(unittest2.TestCase):
         self.sut.up(self.config.SUT_LAN4)
         self.sut.up(self.config.SUT_LAN5)
         self.sut.up(self.config.SUT_LAN6)
-        self.sut.up(self.config.SUT_LAN7)
-        self.sut.up(self.config.SUT_LAN8)
         self.sut.up(self.config.SUT_OPTICAL3)
-        self.sut.up(self.config.SUT_OPTICAL4)
 
         self.sut.addBridge('br1')
         self.sut.up('br1')
@@ -659,10 +656,7 @@ class bridge_test(unittest2.TestCase):
         self.sut.down(self.config.SUT_LAN4)
         self.sut.down(self.config.SUT_LAN5)
         self.sut.down(self.config.SUT_LAN6)
-        self.sut.down(self.config.SUT_LAN7)
-        self.sut.down(self.config.SUT_LAN8)
         self.sut.down(self.config.SUT_OPTICAL3)
-        self.sut.down(self.config.SUT_OPTICAL4)
 
 
 if __name__ == '__main__':
