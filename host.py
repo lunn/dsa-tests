@@ -81,6 +81,15 @@ class HOST(object):
             return True
         return False
 
+    def pingdown(self, address):
+        """Test the address is down. Don't wait around long, since we don't
+           expect an answer. Return True if we receive replies, or
+           False if there is no answer"""
+        ret = self._call('ping -c 1 -W 1 {0}'.format(address))
+        if ret == 0:
+            return True
+        return False
+
     def arpGet(self, address):
         """Return the MAC address ARP has determined for a given IP address"""
         stdout, _ = self._communicate('arp {0}'.format(address))

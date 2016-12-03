@@ -94,14 +94,14 @@ class ping_individual_test(unittest2.TestCase):
         self.sut.down(self.config.SUT_LAN6)
         self.sut.down(self.config.SUT_OPTICAL3)
 
-        self.assertFalse(self.host.ping('192.168.10.2'))
-        self.assertFalse(self.host.ping('192.168.11.2'))
-        self.assertFalse(self.host.ping('192.168.12.2'))
-        self.assertFalse(self.host.ping('192.168.13.2'))
-        self.assertFalse(self.host.ping('192.168.14.2'))
-        self.assertFalse(self.host.ping('192.168.15.2'))
-        self.assertFalse(self.host.ping('192.168.16.2'))
-        self.assertFalse(self.host.ping('192.168.17.2'))
+        self.assertFalse(self.host.pingdown('192.168.10.2'))
+        self.assertFalse(self.host.pingdown('192.168.11.2'))
+        self.assertFalse(self.host.pingdown('192.168.12.2'))
+        self.assertFalse(self.host.pingdown('192.168.13.2'))
+        self.assertFalse(self.host.pingdown('192.168.14.2'))
+        self.assertFalse(self.host.pingdown('192.168.15.2'))
+        self.assertFalse(self.host.pingdown('192.168.16.2'))
+        self.assertFalse(self.host.pingdown('192.168.17.2'))
 
 if __name__ == '__main__':
     args = params.params()

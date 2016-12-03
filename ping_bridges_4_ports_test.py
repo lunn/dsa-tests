@@ -190,10 +190,10 @@ class ping_bridges_4_ports_test(unittest2.TestCase):
         self.sut.down(self.config.SUT_LAN2)
         self.sut.down(self.config.SUT_LAN3)
 
-        self.assertFalse(self.host.ping('192.168.10.2'))
-        self.assertFalse(self.host.ping('192.168.11.2'))
-        self.assertFalse(self.host.ping('192.168.12.2'))
-        self.assertFalse(self.host.ping('192.168.13.2'))
+        self.assertFalse(self.host.pingdown('192.168.10.2'))
+        self.assertFalse(self.host.pingdown('192.168.11.2'))
+        self.assertFalse(self.host.pingdown('192.168.12.2'))
+        self.assertFalse(self.host.pingdown('192.168.13.2'))
 
 if __name__ == '__main__':
     args = params.params()
