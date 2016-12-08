@@ -4,6 +4,9 @@
     description: 'Run {test_name} test'
     block-downstream: true
     node: '{node}'
+    wrappers:
+      - timeout:
+          abort: true
     builders:
       - shell: |
          sudo {test_path}/dsa-tests/{test_name}_test.py --conf {test_path}/dsa-tests/{test_conf} --xml
