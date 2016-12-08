@@ -34,6 +34,11 @@ def readConfig(filename, fourPorts=True):
     config['SUT_LAN2'] = parser.get('sut', 'lan2')
     config['SUT_LAN3'] = parser.get('sut', 'lan3')
 
+    try:
+        config['SUT_MGMT'] = parser.get('sut', 'mgmt')
+    except:
+        config['SUT_MGMT'] = None
+
     if not fourPorts:
         config['SUT_LAN4'] = parser.get('sut', 'lan4')
         config['SUT_LAN5'] = parser.get('sut', 'lan5')

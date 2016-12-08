@@ -662,7 +662,8 @@ class bridge_test(unittest2.TestCase):
 if __name__ == '__main__':
     args = params.params()
     CONFIG = params.readConfig(args.config, fourPorts=False)
-    SUT = sut.SUT(hostname=CONFIG.hostname, key=CONFIG.key)
+    SUT = sut.SUT(hostname=CONFIG.hostname, key=CONFIG.key,
+                  mgmt=CONFIG.SUT_MGMT)
     SUT.cleanSystem()
     TRAFFIC = traffic.Traffic()
 

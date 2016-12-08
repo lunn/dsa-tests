@@ -23,7 +23,8 @@ def dbg_print(args):
 class SUT(object):
     """Class representing the System Under Test"""
 
-    def __init__(self, hostname, key):
+    def __init__(self, hostname, key, mgmt):
+        self.mgmt = mgmt
         self.sshClient = paramiko.SSHClient()
         self.sshClient.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         self.sshClient.connect(hostname, username='root', key_filename=key)
@@ -338,8 +339,11 @@ class SUT(object):
         bridges = self.getBridges()
         interfaces = self.getInterfaces()
         interfaces = [interface for interface in interfaces if
-                      interface.startswith('lan') or
-                      interface.startswith('optical')]
+                      (interface.startswith('lan') or
+                       interface.startswith('optical') or
+                       interface.startswith('port')) and
+                      not interface.startswith(self.mgmt)]
+
         if len(bonds):
             #  Todo: Implement cleanup of bonds
             raise NameError('SUT has some bonds: {0}'.format(bonds))
