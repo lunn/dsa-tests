@@ -69,6 +69,9 @@ class ping_individual_test(unittest2.TestCase):
         self.host.addAddress(self.config.HOST_LAN2, '192.168.12.1/24')
         self.host.addAddress(self.config.HOST_LAN3, '192.168.13.1/24')
 
+        # Allow time for the interfaces to come up
+        time.sleep(5)
+
     def test_02_ping(self):
         """Ping the SUT. We expect replies for all interfaces"""
 
@@ -99,6 +102,9 @@ class ping_individual_test(unittest2.TestCase):
         self.sut.down(self.config.SUT_LAN1)
         self.sut.down(self.config.SUT_LAN2)
         self.sut.down(self.config.SUT_LAN3)
+
+        # Allow time for the interfaces to go down
+        time.sleep(5)
 
         self.assertFalse(self.host.pingdown('192.168.10.2'))
         self.assertFalse(self.host.pingdown('192.168.11.2'))
