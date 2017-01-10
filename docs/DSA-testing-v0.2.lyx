@@ -1,0 +1,1371 @@
+#LyX 2.2 created this file. For more info see http://www.lyx.org/
+\lyxformat 508
+\begin_document
+\begin_header
+\save_transient_properties true
+\origin unavailable
+\textclass report
+\use_default_options true
+\maintain_unincluded_children false
+\language english
+\language_package default
+\inputencoding auto
+\fontencoding global
+\font_roman "times" "default"
+\font_sans "default" "default"
+\font_typewriter "courier" "default"
+\font_math "auto" "auto"
+\font_default_family rmdefault
+\use_non_tex_fonts false
+\font_sc false
+\font_osf false
+\font_sf_scale 100 100
+\font_tt_scale 100 100
+\graphics default
+\default_output_format default
+\output_sync 0
+\bibtex_command default
+\index_command default
+\paperfontsize default
+\spacing single
+\use_hyperref false
+\papersize default
+\use_geometry true
+\use_package amsmath 1
+\use_package amssymb 1
+\use_package cancel 1
+\use_package esint 1
+\use_package mathdots 1
+\use_package mathtools 1
+\use_package mhchem 1
+\use_package stackrel 1
+\use_package stmaryrd 1
+\use_package undertilde 1
+\cite_engine basic
+\cite_engine_type default
+\biblio_style plain
+\use_bibtopic false
+\use_indices false
+\paperorientation portrait
+\suppress_date false
+\justification true
+\use_refstyle 1
+\index Index
+\shortcut idx
+\color #008000
+\end_index
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\paragraph_indentation default
+\quotes_language english
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict false
+\end_header
+
+\begin_body
+
+\begin_layout Title
+DSA Test scripts
+\end_layout
+
+\begin_layout Author
+Andrew Lunn <andrew@lunn.ch>
+\end_layout
+
+\begin_layout Date
+v0.2
+\end_layout
+
+\begin_layout Chapter
+Introduction
+\end_layout
+
+\begin_layout Standard
+This document is a brief introduction to the testing scripts i've hacked
+ together for DSA switches.
+ It describes the hardware currently being tested, the hardware setup, software
+ setup, how to run the tests and what the current tests do.
+ Lastly a section lists further work.
+\end_layout
+
+\begin_layout Chapter
+Hardware Test Setup
+\end_layout
+
+\begin_layout Standard
+The tests have been developed in order to test DSA on the Zodiac Development
+ board revision B, aka zii-devel-b.
+ This is a somewhat unusual device in that it has three switches, allowing
+ D in DSA development and testing.
+ It has a limited number of ports from each switch coming to Copper PHYs
+ and two ports from switch #2 are connected to SFF fibre modules.
+ The switches are arranged in a chain, with a DSA link between each switch.
+ Figure 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "fig:Zodiac-Development-board"
+
+\end_inset
+
+ is a block diagram for this board, and how it is connected to the test
+ host.
+\end_layout
+
+\begin_layout Standard
+The test host is a standard desktop machine with two quad Ethernet cards,
+ in addition to its normal Ethernet device.
+ These 8 devices have been cabled to eight of the test devices ports, making
+ use of a media converter to connect to one of the fiber interfaces.
+ 
+\end_layout
+
+\begin_layout Standard
+Both the device under test and the test host are connected to a common managemen
+t network.
+ Additionally a TFTP server is on the management network, and is used by
+ the device under test to TFTP boot the kernel and device tree blob.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\align center
+\begin_inset Graphics
+	filename zii-devel-b.svg
+	height 18cm
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+\begin_inset CommandInset label
+LatexCommand label
+name "fig:Zodiac-Development-board"
+
+\end_inset
+
+Zodiac Development board connections to test Host
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+A second test system has been setup using more conventional hardware.
+ A Marvell reference design board, with a single 7 port switch is used.
+ 4 of these ports come to RJ45 sockets.
+ Probably any wireless access point could be used.
+ However it is recommended that the management Ethernet interface, used
+ for SSH access to the device, is not one of the switch ports, but a dedicated
+ Ethernet interface.
+\end_layout
+
+\begin_layout Standard
+Four USB-Ethernet dongles are used to provide the host interfaces.
+ Such devices appear as normal Ethernets interfaces in Linux.
+ However it appears that configuring the interface down on such USB-Ethernet
+ devices does not cause the carrier to be dropped.
+ This may however depend on the chipset used in the dongle.
+\end_layout
+
+\begin_layout Standard
+Further devices have now been added.
+ 
+\end_layout
+
+\begin_layout Standard
+An SPU3 is a 6 port device.
+ Unlike to two devices above, the SPU3 has no dedicated management port.
+ Thus port2 has been used for management, and is connected to the management
+ network shown in figure 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "fig:Zodiac-Development-board"
+
+\end_inset
+
+.
+ Ports 3-6 are then used for tests.
+ The lack of a management ports also complicates booting the device.
+ It cannot be TFTP booted.
+ Instead the kernel and device tree blob is loaded over the serial port.
+ To make this not overly slow, uboot is swapped to 4Mbaud during the download,
+ but then returned to the standard baud rate before boot.
+\end_layout
+
+\begin_layout Standard
+A Zodiac Development board revision B, aka zii-devel-c has also been added
+ to the test far.
+ This is a two switch device, with 8 copper ports and two fiber ports.
+ However, one of the fiber port is muxed with a copper port.
+ Currently only the copper ports are used in the tests, using 8 USB-Ethernet
+ dongles.
+ It is likely that in the future, one of the fiber interfaces will be used
+ in place of a copper port.
+\end_layout
+
+\begin_layout Chapter
+Test Software Setup
+\end_layout
+
+\begin_layout Section
+Ostinato
+\end_layout
+
+\begin_layout Standard
+Ostinato is a software packet for generator and capturing test streams of
+ Ethernet frames.
+ It has the home page 
+\begin_inset Flex URL
+status open
+
+\begin_layout Plain Layout
+
+http://ostinato.org/
+\end_layout
+
+\end_inset
+
+.
+ Although Debian has a package for it, the python bindings are not included.
+ So it has been built from source.
+ This in tern requires that googles protobufs were also built from source,
+ since Debian's version fails to compile Ostinato.
+\end_layout
+
+\begin_layout Standard
+The Ostinato architecture consists of a Drone which generates frames and
+ captures results, and a front end which configures the drone.
+ This front end can either be the Ostinato qt GUI, or any script using the
+ python bindings.
+\end_layout
+
+\begin_layout Standard
+The drone has a configuration file, /etc/xdg/Ostinato/drone.ini.
+ This should contain what is shown in listing 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "lis:Drone-configuration-File"
+
+\end_inset
+
+ in order to limit the drone to just the test interfaces.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Box Frameless
+position "t"
+hor_pos "c"
+has_inner_box 1
+inner_pos "t"
+use_parbox 0
+use_makebox 0
+width "100col%"
+special "none"
+height "1in"
+height_special "totalheight"
+thickness "0.4pt"
+separation "3pt"
+shadowsize "4pt"
+framecolor "black"
+backgroundcolor "none"
+status open
+
+\begin_layout Plain Layout
+\begin_inset listings
+lstparams "basicstyle={\small\ttfamily},captionpos=b"
+inline false
+status open
+
+\begin_layout Plain Layout
+
+[PortList]
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+Include=eth1?
+\end_layout
+
+\begin_layout Plain Layout
+
+Exclude=usbmon* 
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+\begin_inset CommandInset label
+LatexCommand label
+name "lis:Drone-configuration-File"
+
+\end_inset
+
+Drone configuration File
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+udev rules for Network Interface naming
+\end_layout
+
+\begin_layout Standard
+In order to separate the test interfaces from the normal interfaces on the
+ test host, udev rules have been used to rename the interfaces eth10, eth11,..
+ eth17.
+ These rules can be placed in /etc/udev/rules.d/70-persistent-net.rules and
+ should look like those in listing 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "lis:udev-rules-for-interfaces"
+
+\end_inset
+
+.
+ The MAC address is the most important match and using it also results in
+ deterministic names for the interfaces.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Box Frameless
+position "t"
+hor_pos "c"
+has_inner_box 1
+inner_pos "t"
+use_parbox 0
+use_makebox 0
+width "100col%"
+special "none"
+height "1in"
+height_special "totalheight"
+thickness "0.4pt"
+separation "3pt"
+shadowsize "4pt"
+framecolor "black"
+backgroundcolor "none"
+status open
+
+\begin_layout Plain Layout
+\begin_inset listings
+lstparams "basicstyle={\tiny\ttfamily},breaklines=true,captionpos=b"
+inline false
+status open
+
+\begin_layout Plain Layout
+
+SUBSYSTEM=="net", ACTION=="add", DRIVERS=="?*", ATTR{address}=="00:26:55:d2:27:a
+8", ATTR{dev_id}=="0x0", ATTR{type}=="1", KERNEL=="enp*", NAME="eth10" 
+\end_layout
+
+\begin_layout Plain Layout
+
+SUBSYSTEM=="net", ACTION=="add", DRIVERS=="?*", ATTR{address}=="00:26:55:d2:27:a
+9", ATTR{dev_id}=="0x0", ATTR{type}=="1", KERNEL=="enp*", NAME="eth11"
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+\begin_inset CommandInset label
+LatexCommand label
+name "lis:udev-rules-for-interfaces"
+
+\end_inset
+
+udev rules for test interfaces
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+udev rules for Serial ports
+\end_layout
+
+\begin_layout Standard
+In order to make it easier to connect to the serial ports of the device,
+ udev rules are used to add symbolic links with meaningful names.
+ Listing 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "lis:udev-rules-for-serial"
+
+\end_inset
+
+ shows an example of how this can be performed.
+ These depend on the boards having an EEPROM connected to its FTDI device,
+ the the FTDI EEPROM has been programmed with sensible values.
+ The unique serial number is the most important differentiator.
+ If it is not programmed, it can be set using the ftdi_eeprom(1) tool, which
+ is part of libftdi.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Box Frameless
+position "t"
+hor_pos "c"
+has_inner_box 1
+inner_pos "t"
+use_parbox 0
+use_makebox 0
+width "100col%"
+special "none"
+height "1in"
+height_special "totalheight"
+thickness "0.4pt"
+separation "3pt"
+shadowsize "4pt"
+framecolor "black"
+backgroundcolor "none"
+status open
+
+\begin_layout Plain Layout
+\begin_inset listings
+lstparams "basicstyle={\tiny\ttfamily},breaklines=true,captionpos=b"
+inline false
+status open
+
+\begin_layout Plain Layout
+
+SUBSYSTEM=="tty", ATTRS{idVendor}=="0403", ATTRS{idProduct}=="6011", ATTRS{manuf
+acturer}=="ZII", ATTRS{serial}=="1639", ENV{ID_USB_INTERFACE_NUM}=="02",
+ SYMLINK+="ttyZii_devel_c"
+\end_layout
+
+\begin_layout Plain Layout
+
+SUBSYSTEM=="tty", ATTRS{idVendor}=="0403", ATTRS{idProduct}=="6011", ATTRS{manuf
+acturer}=="ZII", ATTRS{serial}=="1234", ENV{ID_USB_INTERFACE_NUM}=="02",
+ SYMLINK+="ttyZii_spu3"
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+\begin_inset CommandInset label
+LatexCommand label
+name "lis:udev-rules-for-serial"
+
+\end_inset
+
+udev rules for serial ports
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+With these sensible names, it is possible to do 
+\family typewriter
+minicom -D /dev/ttyZii_spu3
+\family default
+ to access to console of the spu3 device.
+ Such names are in general not required, but are however useful.
+ The exception is for spu3, which boots over its serial port.
+ The script contains a hard coded device name for the serial port, 
+\family typewriter
+/dev/ttyZii_spu3.
+\end_layout
+
+\begin_layout Section
+Jenkins and Jenkins job builder
+\end_layout
+
+\begin_layout Standard
+To automate the running of the tests, an jenkins
+\begin_inset Foot
+status open
+
+\begin_layout Plain Layout
+\begin_inset Flex URL
+status open
+
+\begin_layout Plain Layout
+
+https://jenkins.io/
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+ instance is used.
+ Initially a standard Debian jenkins has been used, but due to nagging requests
+ to upgrade, the upstream package is now used, available from 
+\begin_inset Flex URL
+status open
+
+\begin_layout Plain Layout
+
+http://pkg.jenkins.io/debian/
+\end_layout
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+There is a lot of repartition in the Jenkins jobs.
+ To avoid all the mouse clickity-clack, Jenkins Job Builder
+\begin_inset Foot
+status open
+
+\begin_layout Plain Layout
+http://docs.openstack.org/infra/jenkins-job-builder/
+\end_layout
+
+\end_inset
+
+ has been used.
+ This makes use of yaml files to described to jobs.
+ The template mechanism allows a very terse description of tests when a
+ hierarchy is used.
+ The tests are very hierarchical, since the same tests are run on different
+ hardware variants, and for a single variant, the tests are run with different
+ kernel configurations.
+\end_layout
+
+\begin_layout Standard
+The standard Debian package has been used.
+\end_layout
+
+\begin_layout Section
+Additional Python packages
+\end_layout
+
+\begin_layout Standard
+The scripts need to execute commands on the system under test.
+ To do this, the python package paramiko is used.
+ This can be installed in the usual way from the distribution repository.
+ For Debian it is called python-paramiko.
+ The tests make use of pythons unittest2.
+ This is commonly not installed by default.
+ For Debian, it is called python-unittest2.
+ In order to automate the spu3 boot over its serial port, a python script
+ has been used.
+ This requires python-serial and python-pexpect.
+ Again these are standard Debian packages.
+\end_layout
+
+\begin_layout Section
+Other useful tools
+\end_layout
+
+\begin_layout Standard
+compiler-cache, aka ccache
+\begin_inset Foot
+status open
+
+\begin_layout Plain Layout
+\begin_inset Flex URL
+status open
+
+\begin_layout Plain Layout
+
+https://ccache.samba.org/
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+, significantly speeds up the build time of the kernels being tests.
+\end_layout
+
+\begin_layout Standard
+A toolchain is very useful.
+ The Debian standard armhf cross toolchain has been used.
+ This may require the use of multi-arch, depending on the vintage of Debian
+ used.
+\end_layout
+
+\begin_layout Section
+System Under Test software
+\end_layout
+
+\begin_layout Standard
+A standard ARM Debian distribution has been used on the Zodiac board.
+ However, very few commands are required.
+ Currently these are ip and brctl.
+ Additionally, it must be possible to ssh into the device.
+ It is likely the tests can be made to work with busybox/barebox, and dropbear.
+ However, it is recommended to have the real ip and brctl commands installed,
+ not cut down alternatives.
+\end_layout
+
+\begin_layout Section
+Scripts
+\end_layout
+
+\begin_layout Standard
+A number of scripts are used on the build system and host executing the
+ tests.
+ A naming convention is used based on the target hardware name.
+\end_layout
+
+\begin_layout Subsection
+Power On/Off/Reboot Scripts
+\end_layout
+
+\begin_layout Standard
+Scripts are used to control the power supply to the device under test.
+ These scripts can turn the power off, on, or off then on.
+ The mechanism to do this is abstracted within the script, since the test
+ farm has a number of hardware solutions to perform this task.
+ Examples are shown in listing 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "lis:power-scripts"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Box Frameless
+position "t"
+hor_pos "c"
+has_inner_box 1
+inner_pos "t"
+use_parbox 0
+use_makebox 0
+width "100col%"
+special "none"
+height "1in"
+height_special "totalheight"
+thickness "0.4pt"
+separation "3pt"
+shadowsize "4pt"
+framecolor "black"
+backgroundcolor "none"
+status open
+
+\begin_layout Plain Layout
+\begin_inset listings
+lstparams "basicstyle={\tiny\ttfamily},breaklines=true,captionpos=b"
+inline false
+status open
+
+\begin_layout Plain Layout
+
+zii_devel_c-off
+\end_layout
+
+\begin_layout Plain Layout
+
+zii_devel_c-on 
+\end_layout
+
+\begin_layout Plain Layout
+
+zii_devel_c-reboot 
+\end_layout
+
+\begin_layout Plain Layout
+
+zii_spu3-boot 
+\end_layout
+
+\begin_layout Plain Layout
+
+zii_spu3-off
+\end_layout
+
+\begin_layout Plain Layout
+
+zii_spu3-on
+\end_layout
+
+\begin_layout Plain Layout
+
+zii_spu3-reboot
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+\begin_inset CommandInset label
+LatexCommand label
+name "lis:power-scripts"
+
+\end_inset
+
+Power control scripts
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The spu3 requires an additional script, 
+\family typewriter
+zii_spu3-boot
+\family default
+.
+ This script performs the serial boot.
+ It uses python pexpect to talk to uboot on the target to set the baud rate
+ to 4Mbaud, and then use zmodem to download the kernel and device tree binary
+ blob.
+\end_layout
+
+\begin_layout Standard
+It is assumed that all other systems under test will automagically perform
+ a TFTP boot, loading its kernel and device tree blob from the TFTP server.
+\end_layout
+
+\begin_layout Subsection
+Build and Install Scripts
+\end_layout
+
+\begin_layout Standard
+A couple of scripts are used to build and install the kernel where to target
+ can download and boot it.
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+armhf-env
+\family default
+ sets the environment variables needed for compiling the kernel.
+ See listing 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "lis:armhf-env"
+
+\end_inset
+
+.
+ This assumes the Debian toolchain is being used.
+ Mangle as necessary for other toolchains sources.
+ 
+\end_layout
+
+\begin_layout Standard
+\begin_inset Box Frameless
+position "t"
+hor_pos "c"
+has_inner_box 1
+inner_pos "t"
+use_parbox 0
+use_makebox 0
+width "100col%"
+special "none"
+height "1in"
+height_special "totalheight"
+thickness "0.4pt"
+separation "3pt"
+shadowsize "4pt"
+framecolor "black"
+backgroundcolor "none"
+status open
+
+\begin_layout Plain Layout
+\begin_inset listings
+lstparams "basicstyle={\tiny\ttfamily},breaklines=true,captionpos=b"
+inline false
+status open
+
+\begin_layout Plain Layout
+
+export ARCH=arm
+\end_layout
+
+\begin_layout Plain Layout
+
+export CROSS_COMPILE=arm-linux-gnueabihf-
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+\begin_inset CommandInset label
+LatexCommand label
+name "lis:armhf-env"
+
+\end_inset
+
+Environment variables needed for compiling the kernel
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Scripts are also used by the kernel build jobs to copy the kernel binary
+ and device tree blob onto the TFTP server.
+ Again, a naming convention is used.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Box Frameless
+position "t"
+hor_pos "c"
+has_inner_box 1
+inner_pos "t"
+use_parbox 0
+use_makebox 0
+width "100col%"
+special "none"
+height "1in"
+height_special "totalheight"
+thickness "0.4pt"
+separation "3pt"
+shadowsize "4pt"
+framecolor "black"
+backgroundcolor "none"
+status open
+
+\begin_layout Plain Layout
+\begin_inset listings
+lstparams "basicstyle={\tiny\ttfamily},breaklines=true,captionpos=b"
+inline false
+status open
+
+\begin_layout Plain Layout
+
+tftpboot-zii-devel-b
+\end_layout
+
+\begin_layout Plain Layout
+
+tftpboot-zii-devel-c
+\end_layout
+
+\begin_layout Plain Layout
+
+tftpboot-zii-spu3
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+\begin_inset CommandInset label
+LatexCommand label
+name "lis:tftpboot"
+
+\end_inset
+
+Tftpboot scripts
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+Test Scripts
+\end_layout
+
+\begin_layout Standard
+The test themselves can be found at: 
+\begin_inset Flex URL
+status open
+
+\begin_layout Plain Layout
+
+https://github.com/lunn/dsa-tests.git
+\end_layout
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Chapter
+Tests
+\end_layout
+
+\begin_layout Section
+Common command line parameters and Configuration file
+\end_layout
+
+\begin_layout Standard
+All tests currently share the same command line parameters, and shown in
+ listing 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "lis:Test-command-line"
+
+\end_inset
+
+.
+ –host is mandatory.
+ Login credentials must be provided, either the root password, or an ssh
+ key which allows root to login without a password.
+ Note that the ~/.ssh directory is not searched for the key, so pass either
+ an absolute or relative path to the key file.
+ A verbose level of 2 shows each test as it is run.
+ Enabling failfast is useful for debugging a failed test.
+ The System Under Test will be left in the state the test failed, making
+ it possible to log in and take a look around.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Box Frameless
+position "t"
+hor_pos "c"
+has_inner_box 1
+inner_pos "t"
+use_parbox 0
+use_makebox 0
+width "100col%"
+special "none"
+height "1in"
+height_special "totalheight"
+thickness "0.4pt"
+separation "3pt"
+shadowsize "4pt"
+framecolor "black"
+backgroundcolor "none"
+status open
+
+\begin_layout Plain Layout
+\begin_inset listings
+lstparams "basicstyle={\small\ttfamily},captionpos=b"
+inline false
+status open
+
+\begin_layout Plain Layout
+
+./bridge_test.py --help
+\end_layout
+
+\begin_layout Plain Layout
+
+usage: bridge_test.py  [-h] --config CONFIG [--verbose VERBOSE][--failfast]
+ 
+\end_layout
+
+\begin_layout Plain Layout
+
+Run some Bridge tests.
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+optional arguments:
+\end_layout
+
+\begin_layout Plain Layout
+
+ -h, --help            show this help message and exit
+\end_layout
+
+\begin_layout Plain Layout
+
+ --config, -c CONFIG   Configuration for for system under test
+\end_layout
+
+\begin_layout Plain Layout
+
+ --verbose VERBOSE, -v VERBOSE
+\end_layout
+
+\begin_layout Plain Layout
+
+                       Run the test with a verbose level
+\end_layout
+
+\begin_layout Plain Layout
+
+ --failfast, -f        Exit the test as soon as a test fails
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+\begin_inset CommandInset label
+LatexCommand label
+name "lis:Test-command-line"
+
+\end_inset
+
+Test command line options
+\end_layout
+
+\end_inset
+
+ 
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Some test need to manipulate the test hosts interfaces.
+ Such tests must be run as root, preferably with sudo.
+ An error will be generated when root permission is required but not available.
+\end_layout
+
+\begin_layout Standard
+The configuration file uses standard INI syntax.
+ An example is shown in listing 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "lis:Configuration-File"
+
+\end_inset
+
+.
+ The host section contains configuration for the host executing the test.
+ It lists the host interfaces which connect to the system under test.
+ The sut section contains configuration for the system under test.
+ It lists the interfaces which are connected to the host.
+ The interfaces for configuration key 'lan0' in the host and sut section
+ are assumed to be wired together.
+ The hostname key is a host name, or IP address for the system under test.
+ The test scripts will execute SSH commands on this device.
+ In order to allow SSH login, the script will make use of the SSH key indicated
+ in the key key of section sut.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Box Frameless
+position "t"
+hor_pos "c"
+has_inner_box 1
+inner_pos "t"
+use_parbox 0
+use_makebox 0
+width "100col%"
+special "none"
+height "1in"
+height_special "totalheight"
+thickness "0.4pt"
+separation "3pt"
+shadowsize "4pt"
+framecolor "black"
+backgroundcolor "none"
+status open
+
+\begin_layout Plain Layout
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+[host]
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+lan0 = eth10
+\end_layout
+
+\begin_layout Plain Layout
+
+lan1 = eth11
+\end_layout
+
+\begin_layout Plain Layout
+
+lan2 = eth12
+\end_layout
+
+\begin_layout Plain Layout
+
+lan3 = eth13
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+[sut]
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+master = eth1
+\end_layout
+
+\begin_layout Plain Layout
+
+lan0 = lan0
+\end_layout
+
+\begin_layout Plain Layout
+
+lan1 = lan1
+\end_layout
+
+\begin_layout Plain Layout
+
+lan2 = lan2
+\end_layout
+
+\begin_layout Plain Layout
+
+lan3 = lan3
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+hostname = 370-rd
+\end_layout
+
+\begin_layout Plain Layout
+
+key = /home/andrew/.ssh/zii-devel
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+\begin_inset CommandInset label
+LatexCommand label
+name "lis:Configuration-File"
+
+\end_inset
+
+Configuration File
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+Test: ping_individual_test.py
+\end_layout
+
+\begin_layout Standard
+This test aims to show that the SUTs interfaces can be used as individual
+ interfaces.
+\end_layout
+
+\begin_layout Standard
+This test creates 8 subnets, one per test host/SUT interface connection.
+ Pings are then performed across each link from the test host to the sut,
+ which is expected to reply.
+ The SUT interfaces are then configured down and the pings repeated.
+ No replies are expected.
+\end_layout
+
+\begin_layout Section
+Test: ping_individual_4_ports_test.py
+\end_layout
+
+\begin_layout Standard
+This is similar to the previous test, but makes use of only 4 ports.
+ The test aims to show that the SUTs interfaces can be used as individual
+ interfaces.
+\end_layout
+
+\begin_layout Standard
+This test creates 4 subnets, one per test host/SUT interface connection.
+ Pings are then performed across each link from the test host to the sut,
+ which is expected to reply.
+ The SUT interfaces are then configured down and the pings repeated.
+ No replies are expected.
+\end_layout
+
+\begin_layout Section
+Test: ping_bridges_test.py
+\end_layout
+
+\begin_layout Standard
+This test is an extension of the previous test.
+ Once it has been shown that individual interfaces can be pinged, bridges
+ are added.
+ Each bridge contains a single interface, and the IP address is moved from
+ the interface to to bridge.
+ Thus it is expected that the ping continues to be successful.
+ The bridges are then removed and the IP address placed back onto the interface.
+ Again, it is expected the pings continue to be successful.
+\end_layout
+
+\begin_layout Section
+Test: ping_bridges_4_ports_test.py
+\end_layout
+
+\begin_layout Standard
+This is similar to the previous test, but makes use of only 4 ports.
+ Once it has been shown that individual interfaces can be pinged, bridges
+ are added.
+ Each bridge contains a single interface, and the IP address is moved from
+ the interface to to bridge.
+ Thus it is expected that the ping continues to be successful.
+ The bridges are then removed and the IP address placed back onto the interface.
+ Again, it is expected the pings continue to be successful.
+\end_layout
+
+\begin_layout Section
+Test: bridge_test.py
+\end_layout
+
+\begin_layout Standard
+This test is still WIP.
+\end_layout
+
+\begin_layout Standard
+This test makes use of Ostinato to generate traffic.
+ Thus the drone must be running.
+ This allows testing of bridges with more than one interface, which cannot
+ easily be tested using ping from one test device.
+ A bridge is created with members from each switch.
+ However some ports are also left out or the bridge.
+ In order for the switch and bridge to learn what MAC addresses are on what
+ ports, two broadcast packets are sent to each port using the MAC address
+ unique to each port.
+ Traffic is then send to the ports which are not members of the bridge.
+ These packet are either ingress on ports which are not a member of the
+ bridge, or are addresses such that they would egress out a port which is
+ not a member of the bridge, or have the broadcast destination address.
+ It is expected that there packets do no appear on any other interface.
+ Packets are then sent to ingress ports which are members of the bridge
+ and destined to egress ports which are also members of the bridge.
+ The packets are then received and counted, to ensure packets are not lost
+ or duplicated.
+\end_layout
+
+\begin_layout Chapter
+Further Work
+\end_layout
+
+\begin_layout Enumerate
+Add a ping_individual_vlan_test.py, which passes VLAN tagged frames as well
+ as untagged frames, Make use of vconfig to create vlan devices and place
+ IP addresses on these interfaces, which should be pingable.
+\end_layout
+
+\begin_layout Enumerate
+Add a bridge_vlan_test.py which tests the VLAN capabilities of bridges.
+\end_layout
+
+\begin_layout Enumerate
+More tests...
+\end_layout
+
+\end_body
+\end_document
