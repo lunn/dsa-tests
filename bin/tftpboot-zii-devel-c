@@ -1,0 +1,13 @@
+#!/bin/bash
+
+tmp_uImage=$(tempfile)
+mkimage -A arm -O linux -T kernel -C none -a 0x80008000 -e 0x80008000 -n Linux -d arch/arm/boot/zImage $tmp_uImage
+scp $tmp_uImage andrew@b3:/srv/tftp/uImage-zii-devel-c
+scp ./arch/arm/boot/dts/vf610-zii-dev-rev-c.dtb andrew@b3:/srv/tftp
+rm $tmp $tmp_uImage
+
+
+#rm -fr /tmp/zii-devel-c
+#mkdir -p /tmp/zii-devel-c
+#make modules_install INSTALL_MOD_PATH=/tmp/zii-devel-c
+#rsync -av /tmp/zii-devel-c/* zii-devel-c:/

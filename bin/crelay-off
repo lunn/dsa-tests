@@ -1,0 +1,5 @@
+#!/bin/bash
+
+PIN=$1
+
+wget apu:8000 -q --post-data "pin=$PIN status=0"

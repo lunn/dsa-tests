@@ -1,0 +1,4 @@
+#!/bin/bash
+
+zii_devel_c-off
+zii_devel_c-on

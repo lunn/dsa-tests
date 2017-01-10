@@ -1,0 +1,124 @@
+#!/usr/bin/python
+
+import os
+import pexpect
+import pexpect.fdpexpect
+import serial
+import sys
+import threading
+import time
+
+PORT = '/dev/ttyZii_spu3'
+BAUD_SLOW = 115200
+BAUD_FAST = 4000000
+
+class Cmdline(object):
+    """Class representing the serial port and pexect instance"""
+    def __init__(self, port, baudrate):
+        self.serial = serial.Serial(port, baudrate)
+        self.child = pexpect.fdpexpect.fdspawn(self.serial.fileno(), timeout=1)
+        self.child.logfile_read = sys.stdout
+        self.child.logfile_write = sys.stdout
+
+    def __del_(self):
+        self.child.close()
+        self.serial.close()
+        del self.child
+        del self.serial
+
+    def baud(self, baud):
+        """Change the baud rate"""
+        self.serial.baudrate = baud
+
+    def sendline(self, line):
+        """Send a line to the command line"""
+        return self.child.sendline(line)
+
+    def expect(self, prompt):
+        return self.child.expect(prompt, timeout=3)
+
+
+def main():
+    cmdline = Cmdline(port=PORT, baudrate=BAUD_SLOW)
+
+    print('==== Checking for u-boot prompt')
+    retries = 20
+    while retries:
+        try:
+            cmdline.sendline('\n')
+            cmdline.sendline('\n')
+            cmdline.expect('Zii=> ')
+            break
+        except pexpect.fdpexpect.exceptions.TIMEOUT:
+            retries = retries - 1
+
+    if retries == 0:
+        return
+
+
+    print('==== Switching to 4M baud')
+
+    cmdline.sendline('setenv baudrate 4000000\n')
+    cmdline.expect('## Switch baudrate to 4000000 bps and press ENTER ...')
+
+    cmdline.baud(BAUD_FAST)
+    time.sleep(1)
+
+    cmdline.sendline('\r')
+    cmdline.sendline('\r')
+    cmdline.expect('\r\r\nZii=> ')
+
+
+    print('==== Prepare to send kernel')
+
+    cmdline.sendline('loady ${loadaddr}')
+    cmdline.expect('## Ready for binary \(ymodem\) download to 0x81000000 at 4000000 bps...')
+
+    del cmdline
+
+    print('==== Sending kernel')
+
+    os.system('sb -q /srv/tftp/zImage-zii-spu3 > {0} < {1}'.format(PORT, PORT))
+
+    cmdline = Cmdline(port=PORT, baudrate=BAUD_FAST)
+
+    cmdline.sendline('')
+    cmdline.expect('Zii=> ')
+
+    print('==== Prepare to send device tree blob')
+
+    cmdline.sendline('loady ${fdt_addr}')
+    cmdline.expect('## Ready for binary \(ymodem\) download to 0x82000000 at 4000000 bps...')
+
+    del cmdline
+
+    print('==== Sending device tree blob')
+
+    os.system('sb -q /srv/tftp/vf610-zii-spu3.dtb > {0} < {1}'.format(PORT, PORT))
+
+    cmdline = Cmdline(port=PORT, baudrate=BAUD_FAST)
+
+    cmdline.sendline('')
+    cmdline.expect('Zii=> ')
+
+    print('==== Switching to 115200 baud')
+
+    cmdline.sendline('setenv baudrate 115200')
+    cmdline.expect('## Switch baudrate to 115200 bps and press ENTER ...')
+
+    cmdline.baud(BAUD_SLOW)
+    time.sleep(1)
+
+    cmdline.sendline('\r')
+    cmdline.sendline('\r')
+    cmdline.expect('\r\r\nZii=> ')
+
+    print('==== Booting')
+
+    cmdline.sendline('bootz ${loadaddr} - ${fdt_addr}')
+
+    del cmdline
+
+
+if __name__ == '__main__':
+    main()

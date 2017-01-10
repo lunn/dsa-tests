@@ -1,0 +1,7 @@
+#!/bin/bash
+
+zii_spu3-off
+sleep 10
+zii_spu3-on
+
+zii_spu3-boot

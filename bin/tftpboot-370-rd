@@ -1,0 +1,17 @@
+#!/bin/bash
+
+echo Using kernel in $PWD
+
+tmp=$(tempfile)
+tmp_uImage=$(tempfile)
+tmp_dir=$(tempfile)
+cat $PWD/arch/arm/boot/zImage >> $tmp
+cat $PWD/arch/arm/boot/dts/armada-370-rd.dtb >> $tmp
+mkimage -A arm -O linux -T kernel -C none -a 0x00008000 -e 0x00008000 -d $tmp $tmp_uImage
+scp $tmp_uImage andrew@b3:/srv/tftp/uImage-370-rd
+rm $tmp $tmp_uImage
+
+#mkdir -p $tmp_dir
+#make modules_install INSTALL_MOD_PATH=$tmp_dir
+#rsync -av /tmp/370-rd/* root@370-rd:/
+#rm -fr $tmp_dir

@@ -1,0 +1,9 @@
+#!/bin/bash
+
+scp arch/arm/boot/zImage andrew@b3:/srv/tftp/zImage-zii-spu3
+scp arch/arm/boot/dts/vf610-zii-spu3.dtb andrew@b3:/srv/tftp
+
+#rm -fr /tmp/zii-devel-b
+#mkdir -p /tmp/zii-devel-b
+#make modules_install INSTALL_MOD_PATH=/tmp/zii-devel-b
+#rsync -av /tmp/zii-devel-b/* zii-devel-b:/

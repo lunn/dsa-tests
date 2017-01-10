@@ -1,0 +1,5 @@
+#!/bin/sh
+
+zii_devel_b-off
+sleep 1
+zii_devel_b-on

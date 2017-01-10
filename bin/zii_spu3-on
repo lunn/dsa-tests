@@ -1,0 +1,4 @@
+#!/bin/sh
+
+wemo switch spu3 on
+

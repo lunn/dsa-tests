@@ -1,0 +1,3 @@
+#!/bin/sh
+
+relay --off -r 3

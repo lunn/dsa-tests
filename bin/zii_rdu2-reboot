@@ -1,0 +1,5 @@
+#!/bin/sh
+
+zii_rdu2-off
+sleep 1
+zii_rdu2-on
