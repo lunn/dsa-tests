@@ -9,7 +9,7 @@
           abort: true
     builders:
       - shell: |
-         sudo {test_path}/dsa-tests/{test_name}_test.py --conf {test_path}/dsa-tests/{test_conf} --xml
+         sudo {test_path}/dsa-tests/tests/{test_name}_test.py --conf {test_path}/dsa-tests/{test_conf} --xml
     publishers:
       - junit:
           results: 'test-reports/TEST-*.xml'
