@@ -8,7 +8,7 @@
          . armhf-env
          cd linux
          git checkout origin/dsa-ci
-         cp ../dsa-tests/configs/{kernel_config} .config
+         cp ../dsa-tests/kernel-configs/{kernel_config} .config
          make oldconfig
          make -j 8
          {tftpboot_cmd}
