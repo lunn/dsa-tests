@@ -1,0 +1,15 @@
+#!/bin/bash
+
+# Update the kernel configs, using the olddefconfig target to the
+#  Kernel Makefile
+DSATESTBINDIR=$( dirname $0 )
+DSATESTDIR=${DSATESTBINDIR}/..
+KERNELCONFIGDIR=${DSATESTDIR}/kernel-configs
+
+for config in ${KERNELCONFIGDIR}/*.config
+do
+    echo ${config}
+    cp ${config} ./.config
+    make olddefconfig
+    cp .config ${config}
+done
