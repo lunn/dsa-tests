@@ -1,0 +1,30 @@
+#!/usr/bin/python
+
+import argparse
+
+from ouimeaux.device.switch import Switch
+
+def main(hostname, state):
+    switch = Switch("http://wemo{0}:49153/setup.xml".format(hostname))
+    if state == 'on':
+        switch.on()
+    elif state == 'off':
+        switch.off()
+    elif state == 'state':
+        print ("State: {0}".format(switch.get_state()))
+    else:
+        print ("Unknown command. Try: on/off/state")
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument("-s", "--switch", required=True,
+                        help="Hostname of switch")
+    parser.add_argument("-a", "--action", required=True,
+                        help="Actiom: on/off/status")
+
+    args = parser.parse_args()
+
+    main(args.switch, args.action)
+
+           
