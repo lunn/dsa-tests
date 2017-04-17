@@ -285,9 +285,10 @@ class bridge_test(unittest2.TestCase):
         self.assertEqual(stats_lan6, rx_10_stats)
         self.assertEqual(stats_optical3, zero_stats)
 
+        # All frames should be hardware bridge
         self.sut.checkClassStatsRange(self.config.SUT_MASTER,
                                       class_stats_master,
-                                      class_tx_rx_30, self)
+                                      class_tx_rx_0, self)
         self.sut.checkEthtoolStatsRange(self.config.SUT_LAN0,
                                         ethtool_stats_lan0,
                                         ethtool_zero, self)
@@ -347,9 +348,10 @@ class bridge_test(unittest2.TestCase):
         self.assertEqual(stats_lan6, rx_10_stats)
         self.assertEqual(stats_optical3, zero_stats)
 
+        # All frames should be hardware bridge
         self.sut.checkClassStatsRange(self.config.SUT_MASTER,
                                       class_stats_master,
-                                      class_tx_rx_30, self)
+                                      class_tx_rx_0, self)
 
     def test_05_bridged_unicast_lan3(self):
         """Send traffic between bridged ports, and ensure they come out the
@@ -385,9 +387,10 @@ class bridge_test(unittest2.TestCase):
         self.assertEqual(stats_lan6, rx_10_stats)
         self.assertEqual(stats_optical3, zero_stats)
 
+        # All frames should be hardware bridge
         self.sut.checkClassStatsRange(self.config.SUT_MASTER,
                                       class_stats_master,
-                                      class_tx_rx_10, self)
+                                      class_tx_rx_0, self)
 
     def test_06_bridged_unicast_lan4(self):
         """Send traffic between bridged ports, and ensure they come out the
@@ -423,9 +426,10 @@ class bridge_test(unittest2.TestCase):
         self.assertEqual(stats_lan6, rx_10_stats)
         self.assertEqual(stats_optical3, zero_stats)
 
+        # All frames should be hardware bridge
         self.sut.checkClassStatsRange(self.config.SUT_MASTER,
                                       class_stats_master,
-                                      class_tx_rx_10, self)
+                                      class_tx_rx_0, self)
 
     def test_07_bridged_unicast_lan6(self):
         """Send traffic between bridged ports, and ensure they come out the
