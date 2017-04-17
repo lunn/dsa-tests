@@ -10,7 +10,7 @@ from ostinato.protocols.mac_pb2 import mac
 from ostinato.protocols.eth2_pb2 import eth2
 from ostinato.protocols.ip4_pb2 import ip4
 from ostinato.protocols.udp_pb2 import udp
-from ostinato.protocols.textproto_pb2 import textProtocol
+from ostinato.protocols.payload_pb2 import Payload, payload
 
 DEBUG = False
 PP = pprint.PrettyPrinter(indent=4)
@@ -144,6 +144,8 @@ class Traffic(object):
         proto.protocol_id.id = ost_pb.Protocol.kIp4FieldNumber
         proto.Extensions[ip4].src_ip = src_ip
         proto.Extensions[ip4].dst_ip = dst_ip
+        proto.Extensions[ip4].is_override_totlen = True
+        proto.Extensions[ip4].totlen = 48
 
     def _addUdpHeader(self, stream, src_port, dst_port):
         """Add a UDP header to a stream"""
@@ -161,6 +163,7 @@ class Traffic(object):
         stream.stream_id.id = interface['stream_id']
         interface['stream_id'] = interface['stream_id'] + 1
         stream.core.is_enabled = True
+        stream.core.frame_len = 64
         stream.control.num_packets = num_packets
         stream.control.packets_per_sec = packets_per_sec
         return stream
@@ -175,7 +178,7 @@ class Traffic(object):
 
         proto = stream.protocol.add()
         proto.protocol_id.id = ost_pb.Protocol.kTextProtocolFieldNumber
-        proto.Extensions[textProtocol].text = 'foo bar didily doo'
+        proto.Extensions[payload].pattern_mode = Payload.e_dp_inc_byte
 
     def addUDPStream(self, src_interface_name, dst_interface_name,
                      num_packets, packets_per_sec):
