@@ -145,7 +145,7 @@ class Traffic(object):
         proto.Extensions[ip4].src_ip = src_ip
         proto.Extensions[ip4].dst_ip = dst_ip
         proto.Extensions[ip4].is_override_totlen = True
-        proto.Extensions[ip4].totlen = 48
+        proto.Extensions[ip4].totlen = 110
 
     def _addUdpHeader(self, stream, src_port, dst_port):
         """Add a UDP header to a stream"""
@@ -163,7 +163,7 @@ class Traffic(object):
         stream.stream_id.id = interface['stream_id']
         interface['stream_id'] = interface['stream_id'] + 1
         stream.core.is_enabled = True
-        stream.core.frame_len = 64
+        stream.core.frame_len = 128
         stream.control.num_packets = num_packets
         stream.control.packets_per_sec = packets_per_sec
         return stream

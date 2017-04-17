@@ -31,7 +31,7 @@ tx_10_stats = {
     'rx_pps': 0L,
     'rx_bps': 0L,
     'tx_pkts': 10L,
-    'tx_bytes': 640L,
+    'tx_bytes': 1280L,
     'tx_pps': 0L,
     'tx_bps': 0L,
     'rx_drops': 0L,
@@ -46,7 +46,7 @@ tx_30_stats = {
     'rx_pps': 0L,
     'rx_bps': 0L,
     'tx_pkts': 30L,
-    'tx_bytes': 1920L,
+    'tx_bytes': 3840L,
     'tx_pps': 0L,
     'tx_bps': 0L,
     'rx_drops': 0L,
@@ -57,7 +57,7 @@ tx_30_stats = {
 
 rx_10_stats = {
     'rx_pkts': 10L,
-    'rx_bytes': 640L,
+    'rx_bytes': 1280L,
     'rx_pps': 0L,
     'rx_bps': 0L,
     'tx_pkts': 0L,
@@ -72,7 +72,7 @@ rx_10_stats = {
 
 rx_20_stats = {
     'rx_pkts': 20L,
-    'rx_bytes': 1280L,
+    'rx_bytes': 2560L,
     'rx_pps': 0L,
     'rx_bps': 0L,
     'tx_pkts': 0L,
@@ -87,7 +87,7 @@ rx_20_stats = {
 
 rx_30_stats = {
     'rx_pkts': 30L,
-    'rx_bytes': 1920L,
+    'rx_bytes': 3840L,
     'rx_pps': 0L,
     'rx_bps': 0L,
     'tx_pkts': 0L,
@@ -192,7 +192,7 @@ class two_bridges_4_ports_test(unittest2.TestCase):
         # allow either to be a pass result.
         self.assertTrue(stats_lan1 == rx_10_stats or
                         stats_lan1 == rx_20_stats or
-                        stats_lan1 == rx_30_stats)
+                        stats_lan1 == rx_30_stats, stats_lan1)
         self.assertEqual(stats_lan2, zero_stats)
         self.assertEqual(stats_lan3, zero_stats)
 
