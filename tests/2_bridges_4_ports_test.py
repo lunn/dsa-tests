@@ -57,7 +57,22 @@ tx_30_stats = {
 
 rx_10_stats = {
     'rx_pkts': 10L,
-    'rx_bytes': 460L,
+    'rx_bytes': 640L,
+    'rx_pps': 0L,
+    'rx_bps': 0L,
+    'tx_pkts': 0L,
+    'tx_bytes': 0L,
+    'tx_pps': 0L,
+    'tx_bps': 0L,
+    'rx_drops': 0L,
+    'rx_errors': 0L,
+    'rx_fifo_errors': 0L,
+    'rx_frame_errors': 0L,
+    }
+
+rx_20_stats = {
+    'rx_pkts': 20L,
+    'rx_bytes': 1280L,
     'rx_pps': 0L,
     'rx_bps': 0L,
     'tx_pkts': 0L,
@@ -72,7 +87,7 @@ rx_10_stats = {
 
 rx_30_stats = {
     'rx_pkts': 30L,
-    'rx_bytes': 1380L,
+    'rx_bytes': 1920L,
     'rx_pps': 0L,
     'rx_bps': 0L,
     'tx_pkts': 0L,
@@ -176,6 +191,7 @@ class two_bridges_4_ports_test(unittest2.TestCase):
         # 802.1d an 802.1q, they are separated, and so it floods.  So
         # allow either to be a pass result.
         self.assertTrue(stats_lan1 == rx_10_stats or
+                        stats_lan1 == rx_20_stats or
                         stats_lan1 == rx_30_stats)
         self.assertEqual(stats_lan2, zero_stats)
         self.assertEqual(stats_lan3, zero_stats)
@@ -183,10 +199,6 @@ class two_bridges_4_ports_test(unittest2.TestCase):
         self.sut.checkEthtoolStatsRange(self.config.SUT_LAN0,
                                         ethtool_stats_lan0,
                                         ethtool_rx_30, self)
-        self.sut.checkEthtoolStatsRangeOr(self.config.SUT_LAN1,
-                                          ethtool_stats_lan1,
-                                          ethtool_tx_10,
-                                          ethtool_tx_30, self)
         self.sut.checkEthtoolStatsRange(self.config.SUT_LAN2,
                                         ethtool_stats_lan2,
                                         ethtool_zero, self)
@@ -211,6 +223,7 @@ class two_bridges_4_ports_test(unittest2.TestCase):
         stats_lan3 = self.traffic.getStats(self.config.HOST_LAN3)
 
         self.assertTrue(stats_lan0 == rx_10_stats or
+                        stats_lan0 == rx_20_stats or
                         stats_lan0 == rx_30_stats)
         self.assertEqual(stats_lan1, tx_30_stats)
         self.assertEqual(stats_lan2, zero_stats)
