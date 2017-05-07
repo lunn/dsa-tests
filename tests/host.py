@@ -76,7 +76,7 @@ class HOST(object):
     def ping(self, address):
         """Ping the given address two times. Return True if we receive
            replies, or False if there is no answer"""
-        ret = self._call('ping -c 1 -W 10 {0}'.format(address))
+        ret = self._call('ping -c 1 -w 10 {0}'.format(address))
         if ret == 0:
             return True
         return False
