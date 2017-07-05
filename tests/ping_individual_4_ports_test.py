@@ -95,7 +95,16 @@ class ping_individual_test(unittest2.TestCase):
         self.assertTrue(mac == "ce:00:11:22:33:44",
                         '{0} != "ce:00:11:22:33:44'.format(mac))
 
-    def test_04_ping_down(self):
+    def test_04_pingbig(self):
+        """Ping the SUT using big MTU frames. We expect replies for all
+           interfaces"""
+
+        self.assertTrue(self.host.pingbig('192.168.10.2'))
+        self.assertTrue(self.host.pingbig('192.168.11.2'))
+        self.assertTrue(self.host.pingbig('192.168.12.2'))
+        self.assertTrue(self.host.pingbig('192.168.13.2'))
+
+    def test_05_ping_down(self):
         """Down the interfaces on the SUT and then ping the SUT.
            We don't expect replies for all interfaces"""
         self.sut.down(self.config.SUT_LAN0)

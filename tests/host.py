@@ -81,6 +81,15 @@ class HOST(object):
             return True
         return False
 
+    def pingbig(self, address):
+        """Ping the given address two times, using a big packet, so testing
+           for MTU issues. Return True if we receive replies, or False
+           if there is no answer"""
+        ret = self._call('ping -c 1 -w 10 -s 2048 {0}'.format(address))
+        if ret == 0:
+            return True
+        return False
+
     def pingdown(self, address):
         """Test the address is down. Don't wait around long, since we don't
            expect an answer. Return True if we receive replies, or
