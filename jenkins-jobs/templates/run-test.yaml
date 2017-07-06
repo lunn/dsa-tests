@@ -7,9 +7,10 @@
     wrappers:
       - timeout:
           abort: true
+      - timestamps
     builders:
       - shell: |
-         sudo {test_path}/dsa-tests/tests/{test_name}_test.py --conf {test_path}/dsa-tests/board-configs/{test_conf} --xml
+         sudo {test_path}/dsa-tests/tests/{test_name}_test.py --conf {test_path}/dsa-tests/board-configs/{test_conf} --xml -v 3
     publishers:
       - junit:
           results: 'test-reports/TEST-*.xml'

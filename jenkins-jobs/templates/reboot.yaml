@@ -4,6 +4,8 @@
     description: 'Reboot the target'
     block-downstream: true
     node: '{reboot_node}'
+    wrappers:
+      - timestamps
     builders:
       - shell: |
          ssh {hostname} "nohup halt > /dev/null 2>&1 &" || true
