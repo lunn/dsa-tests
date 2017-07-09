@@ -47,11 +47,11 @@ class Traffic(object):
         interfaces = []
         for port in self.port_config_list.port:
             stream_id_list = ost_pb.StreamIdList()
-            stream_id_list.stream_id.add().id = 0
             stream_id_list.stream_id.add().id = 1
             stream_id_list.stream_id.add().id = 2
             stream_id_list.stream_id.add().id = 3
             stream_id_list.stream_id.add().id = 4
+            stream_id_list.stream_id.add().id = 5
             stream_id_list.port_id.id = port.port_id.id
             self.drone.addStream(stream_id_list)
             stream_cfg = ost_pb.StreamConfigList()
@@ -62,7 +62,7 @@ class Traffic(object):
                 'port_id': port.port_id.id,
                 'stream_id_list': stream_id_list,
                 'stream_cfg': stream_cfg,
-                'stream_id': 0,
+                'stream_id': 1,
             }
             interfaces.append(interface)
         return interfaces
@@ -78,8 +78,7 @@ class Traffic(object):
             stream_cfg = ost_pb.StreamConfigList()
             stream_cfg.port_id.id = port_id
             interface['stream_cfg'] = stream_cfg
-            interface['stream_id'] = 0
-            self.drone.modifyStream(stream_cfg)
+            interface['stream_id'] = 1
 
     def _getInterfaceByName(self, interface_name):
         """Return the interface dict for a given interface name"""
@@ -144,8 +143,6 @@ class Traffic(object):
         proto.protocol_id.id = ost_pb.Protocol.kIp4FieldNumber
         proto.Extensions[ip4].src_ip = src_ip
         proto.Extensions[ip4].dst_ip = dst_ip
-        proto.Extensions[ip4].is_override_totlen = True
-        proto.Extensions[ip4].totlen = 110
 
     def _addUdpHeader(self, stream, src_port, dst_port):
         """Add a UDP header to a stream"""
@@ -156,9 +153,8 @@ class Traffic(object):
         proto.Extensions[udp].src_port = src_port
         proto.Extensions[udp].dst_port = dst_port
 
-    def _addStream(self, interface, num_packets, packets_per_sec):
+    def _addStream(self, stream_cfg, interface, num_packets, packets_per_sec):
         """Add a stream to an interface, and return it"""
-        stream_cfg = interface['stream_cfg']
         stream = stream_cfg.stream.add()
         stream.stream_id.id = interface['stream_id']
         interface['stream_id'] = interface['stream_id'] + 1
@@ -177,8 +173,7 @@ class Traffic(object):
         self._addUdpHeader(stream, 0x1234, 0x4321)
 
         proto = stream.protocol.add()
-        proto.protocol_id.id = ost_pb.Protocol.kTextProtocolFieldNumber
-        proto.Extensions[payload].pattern_mode = Payload.e_dp_inc_byte
+        proto.protocol_id.id = ost_pb.Protocol.kPayloadFieldNumber
 
     def addUDPStream(self, src_interface_name, dst_interface_name,
                      num_packets, packets_per_sec):
@@ -191,7 +186,8 @@ class Traffic(object):
         src_interface = self._getInterfaceByName(src_interface_name)
         dst_interface = self._getInterfaceByName(dst_interface_name)
         stream_cfg = src_interface['stream_cfg']
-        stream = self._addStream(src_interface, num_packets, packets_per_sec)
+        stream = self._addStream(stream_cfg, src_interface, num_packets,
+                                 packets_per_sec)
         src_mac = self._getInterfaceMacAddress(src_interface)
         dst_mac = self._getInterfaceMacAddress(dst_interface)
         src_ip = self._getInterfaceIPAddress(src_interface)
@@ -210,7 +206,8 @@ class Traffic(object):
                          packets_per_sec))
         src_interface = self._getInterfaceByName(src_interface_name)
         stream_cfg = src_interface['stream_cfg']
-        stream = self._addStream(src_interface, num_packets, packets_per_sec)
+        stream = self._addStream(stream_cfg, src_interface, num_packets,
+                                 packets_per_sec)
         src_mac = self._getInterfaceMacAddress(src_interface)
         dst_mac = 0xffffffffffff
         src_ip = self._getInterfaceIPAddress(src_interface)
@@ -277,6 +274,7 @@ class Traffic(object):
                     'rx_frame_errors': port_stats.rx_frame_errors,
                 }
                 return stats
+
 
 if __name__ == '__main__':
     try:
