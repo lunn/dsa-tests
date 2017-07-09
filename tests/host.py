@@ -2,6 +2,8 @@
 """Model the Test Host"""
 import os
 import subprocess
+import socket
+import struct
 
 DEBUG = False
 
@@ -20,9 +22,12 @@ class HOST(object):
         """Check that we have root permissions, otherwise methods here
            are going to fail."""
         self.interfaces = []
+        self.groups = []
         if os.geteuid() != 0:
             exit("You need to have root privileges to run this script.\n"
                  "Please try again, this time using 'sudo'. Exiting.")
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM,
+                                  socket.IPPROTO_UDP)
 
     def _check_call(self, command):
         """Call the given command, breaking the string up on spaces.
@@ -60,6 +65,43 @@ class HOST(object):
             raise NameError('delAddress called for unknown interface')
         self._check_call('ip addr del {0} dev {1}'.format(
             address, interface))
+
+    def join(self, interface, address, group):
+        """Join the multicast group on the interface"""
+        if interface not in self.interfaces:
+            raise NameError('join called for unknown interface')
+        mreq = struct.pack("4s4s", socket.inet_aton(group),
+                           socket.inet_aton(address))
+        self.sock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
+        record = {'interface': interface,
+                  'address': address,
+                  'group': group}
+        self.groups.append(record)
+
+    def leave(self, interface, address, group):
+        """Leave the multicast group on the interface"""
+        if interface not in self.interfaces:
+            raise NameError('join called for unknown interface')
+        record = {'interface': interface,
+                  'address': address,
+                  'group': group}
+        for group in self.groups:
+            if record == group:
+                mreq = struct.pack("4s4s",
+                                   socket.inet_aton(record['group']),
+                                   socket.inet_aton(record['address']))
+                self.sock.setsockopt(socket.IPPROTO_IP,
+                                     socket.IP_DROP_MEMBERSHIP,
+                                     mreq)
+                self.groups.remove(record)
+                return
+        raise NameError('leave for non-join group {0} {1} {2}'.format(
+            interface, address, group))
+
+    def leave_all(self):
+        """Leave all multicast groups"""
+        for group in self.groups[:]:
+            self.leave(group['interface'], group['address'], group['group'])
 
     def up(self, interface):
         """Set an interface up"""
@@ -110,7 +152,8 @@ class HOST(object):
 
     def cleanSystem(self):
         """Remove all addresses from the test interfaces, ensure they are
-           all up"""
+           all up. Remove any multicast memberships"""
+        self.leave_all()
         for interface in self.interfaces:
             self.up(interface)
             self._check_call('ip addr flush dev {0}'.format(interface))
