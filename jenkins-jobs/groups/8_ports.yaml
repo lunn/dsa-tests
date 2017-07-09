@@ -61,9 +61,14 @@
           test_name: 'bridge'
 
       - '{number}_{target}_{test_name}_test':
-          downstream: '{job_prefix}040_{target}_{config_prefix}_dsa-802.1q.config_compile_linux'
+          downstream: '{job_prefix}038_{target}_igmp_4_ports_test'
           number: '{job_prefix}037'
           test_name: '2_bridges_4_ports'
+
+      - '{number}_{target}_{test_name}_test':
+          downstream: '{job_prefix}040_{target}_{config_prefix}_dsa-802.1q.config_compile_linux'
+          number: '{job_prefix}038'
+          test_name: 'igmp_4_ports'
 
       # DSA and vlan
       - '{number}_{target}_{kernel_config}_compile_linux':
@@ -121,9 +126,14 @@
           test_name: 'bridge'
 
       - '{number}_{target}_{test_name}_test':
-          downstream: '{job_prefix}060_{target}_{config_prefix}_dsa-802.1d-802.1q-vlan-filtering.config_compile_linux'
+          downstream: '{job_prefix}058_{target}_igmp_4_ports_test'
           number: '{job_prefix}057'
           test_name: '2_bridges_4_ports'
+
+      - '{number}_{target}_{test_name}_test':
+          downstream: '{job_prefix}060_{target}_{config_prefix}_dsa-802.1d-802.1q-vlan-filtering.config_compile_linux'
+          number: '{job_prefix}058'
+          test_name: 'igmp_4_ports'
 
       # DSA, bridge and vlan filtered
       - '{number}_{target}_{kernel_config}_compile_linux':
@@ -160,9 +170,14 @@
           test_name: 'bridge'
 
       - '{number}_{target}_{test_name}_test':
-          downstream: '{job_prefix}999_{target}_halt'
+          downstream: '{job_prefix}068_{target}_igmp_4_ports_test'
           number: '{job_prefix}067'
           test_name: '2_bridges_4_ports'
+
+      - '{number}_{target}_{test_name}_test':
+          downstream: '{job_prefix}999_{target}_halt'
+          number: '{job_prefix}068'
+          test_name: 'igmp_4_ports'
 
       # All done, power off
       - '{number}_{target}_halt':
