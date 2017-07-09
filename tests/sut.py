@@ -159,6 +159,7 @@ class SUT(object):
         self.getInterfaces()
         self.checkExitCode(0)
         self.ssh('brctl setfd {0} 2'.format(bridge))
+        self.ssh('ip link set {0} type bridge mcast_querier 1'.format(bridge))
         self.checkExitCode(0)
 
     def addBridgeInterface(self, bridge, interface):
