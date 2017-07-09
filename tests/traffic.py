@@ -2,15 +2,20 @@
 """Create streams and receive packets"""
 # pylint: disable=E1101
 
+import ipaddress
+import pprint
+import socket
 import sys
 import time
-import pprint
 from ostinato.core import ost_pb, DroneProxy
 from ostinato.protocols.mac_pb2 import mac
 from ostinato.protocols.eth2_pb2 import eth2
 from ostinato.protocols.ip4_pb2 import ip4
 from ostinato.protocols.udp_pb2 import udp
+from ostinato.protocols.igmp_pb2 import igmp
 from ostinato.protocols.payload_pb2 import Payload, payload
+
+IGMPv2_REQUEST = 0x16
 
 DEBUG = False
 PP = pprint.PrettyPrinter(indent=4)
@@ -153,6 +158,17 @@ class Traffic(object):
         proto.Extensions[udp].src_port = src_port
         proto.Extensions[udp].dst_port = dst_port
 
+    def _addIGMPHeader(self, stream, igmp_type, group):
+        """Add an IGMP header to a stream"""
+        proto = stream.protocol.add()
+        proto.protocol_id.id = ost_pb.Protocol.kIgmpFieldNumber
+        proto.Extensions[igmp].type = igmp_type
+        proto.Extensions[igmp].group_address.v4 = group
+
+    def _addIGMPRequestHeader(self, stream, group):
+        """Add an IGMP Request header to a stream"""
+        self._addIGMPHeader(stream, IGMPv2_REQUEST, group)
+
     def _addStream(self, stream_cfg, interface, num_packets, packets_per_sec):
         """Add a stream to an interface, and return it"""
         stream = stream_cfg.stream.add()
@@ -214,6 +230,51 @@ class Traffic(object):
         dst_ip = 0xc0a82aff
 
         self._addUDPPacketStream(stream, src_mac, dst_mac, src_ip, dst_ip)
+        self.drone.modifyStream(stream_cfg)
+
+    def addUDPMulticastStream(self, src_interface_name, group_str, num_packets,
+                              packets_per_sec):
+        """Add a UDP multicast stream from the source interface to the
+           group address"""
+        dbg_print('addUDPMulticastStream({0} {1} {2} {3})'.
+                  format(src_interface_name,
+                         group_str,
+                         num_packets,
+                         packets_per_sec))
+        src_interface = self._getInterfaceByName(src_interface_name)
+        stream_cfg = src_interface['stream_cfg']
+        stream = self._addStream(stream_cfg, src_interface, num_packets,
+                                 packets_per_sec)
+        src_mac = self._getInterfaceMacAddress(src_interface)
+        group = ipaddress.ip_address(group_str.decode())
+        dst_mac = 0x01005e000000 + (int(group) & 0x07fffff)
+        src_ip = self._getInterfaceIPAddress(src_interface)
+        dst_ip = int(group)
+
+        self._addUDPPacketStream(stream, src_mac, dst_mac, src_ip, dst_ip)
+        self.drone.modifyStream(stream_cfg)
+
+    def addIGMPRequestStream(self, src_interface_name, group, num_packets,
+                             packets_per_sec):
+        """Add a IGMP request stream from the source interface to the
+           group address"""
+        dbg_print('addIGMPStream({0} {1} {2})'.
+                  format(src_interface_name, group, num_packets))
+        src_interface = self._getInterfaceByName(src_interface_name)
+        stream_cfg = src_interface['stream_cfg']
+        stream = self._addStream(stream_cfg, src_interface, num_packets,
+                                 packets_per_sec)
+        src_mac = self._getInterfaceMacAddress(src_interface)
+        dst_mac = 0x01005e00001
+        src_ip = self._getInterfaceIPAddress(src_interface)
+        dst_ip = group
+
+        self._addEthernetHeader(stream, src_mac=src_mac,
+                                dst_mac=dst_mac)
+        self._addEthertypeIP(stream)
+        self._addIPHeader(stream, src_ip=src_ip, dst_ip=dst_ip)
+        self._addIGMPRequestHeader(stream, group)
+
         self.drone.modifyStream(stream_cfg)
 
     def learningStream(self, interface_name):
