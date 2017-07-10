@@ -2,18 +2,17 @@
 """Create streams and receive packets"""
 # pylint: disable=E1101
 
-import ipaddress
+import inspect
 import pprint
-import socket
 import sys
 import time
+import ipaddress
 from ostinato.core import ost_pb, DroneProxy
 from ostinato.protocols.mac_pb2 import mac
 from ostinato.protocols.eth2_pb2 import eth2
 from ostinato.protocols.ip4_pb2 import ip4
 from ostinato.protocols.udp_pb2 import udp
 from ostinato.protocols.igmp_pb2 import igmp
-from ostinato.protocols.payload_pb2 import Payload, payload
 
 IGMPv2_REQUEST = 0x16
 
@@ -26,6 +25,19 @@ def dbg_print(args):
     if DEBUG:
         print args
 
+def get_class_from_frame(fr):
+    """Return the class a method was called from"""
+    args, _, _, value_dict = inspect.getargvalues(fr)
+    # we check the first parameter for the frame function is
+    # named 'self'
+    if len(args) and args[0] == 'self':
+        # in that case, 'self' will be referenced in value_dict
+        instance = value_dict.get('self', None)
+        if instance:
+            # return its class
+            return getattr(instance, '__class__', None)
+        # return None otherwise
+    return None
 
 class Traffic(object):
     """Class for traffic streams"""
@@ -64,7 +76,8 @@ class Traffic(object):
 
             interface = {
                 'name': port.name,
-                'port_id': port.port_id.id,
+                'port_id': port.port_id,
+                'port_id_id': port.port_id.id,
                 'stream_id_list': stream_id_list,
                 'stream_cfg': stream_cfg,
                 'stream_id': 1,
@@ -77,7 +90,7 @@ class Traffic(object):
            once for the next run"""
         for interface in self.interfaces:
             stream_id_list = interface['stream_id_list']
-            port_id = interface['port_id']
+            port_id = interface['port_id_id']
             self.drone.deleteStream(stream_id_list)
             self.drone.addStream(stream_id_list)
             stream_cfg = ost_pb.StreamConfigList()
@@ -95,7 +108,7 @@ class Traffic(object):
     def _getInterfaceByPortId(self, port_id):
         """Return the interface dict for a given interface name"""
         for interface in self.interfaces:
-            if interface['port_id'] == port_id:
+            if interface['port_id_id'] == port_id:
                 return interface
         raise NameError('getInterface called for unknown interface name')
 
@@ -103,7 +116,7 @@ class Traffic(object):
         """Return the Ostinato ID for an interface name"""
         for interface in self.interfaces:
             if interface['name'] == interface_name:
-                return interface['port_id']
+                return interface['port_id_id']
         raise NameError('getInterfaceId called for unknown interface {0}'.
                         format(interface_name))
 
@@ -122,11 +135,11 @@ class Traffic(object):
 
     def _getInterfaceMacAddress(self, interface):
         """Return the MAC address of an interface"""
-        return 0x001020304000 + interface['port_id']
+        return 0x001020304000 + interface['port_id_id']
 
     def _getInterfaceIPAddress(self, interface):
         """Return the IP address of an interface"""
-        return 0xc0a83a0a + interface['port_id']
+        return 0xc0a83a0a + interface['port_id_id']
 
     def _addEthernetHeader(self, stream, src_mac, dst_mac):
         """Add an Ethernet header to a stream"""
@@ -290,11 +303,26 @@ class Traffic(object):
         dbg_print('learning')
         for interface_name in self.addedInterfaces:
             self.learningStream(interface_name)
-        self.run()
+        frame = inspect.stack()[1][0]
+        method = inspect.stack()[1][3]
+        test = get_class_from_frame(frame).__name__
+        self._run(test, method)
 
-    def run(self):
-        """Run the streams"""
-        dbg_print('run')
+    def _saveCapture(self, testname, methodname, interface_name):
+        """Save the capture file for one interface"""
+        filename = "{0}-{1}-{2}.pcap".format(testname, methodname,
+                                             interface_name)
+        interface = self._getInterfaceByName(interface_name)
+        buff = self.drone.getCaptureBuffer(interface['port_id'])
+        self.drone.saveCaptureBuffer(buff, filename)
+
+    def _saveCaptures(self, testname, methodname):
+        """Save the capture files, using the test name as a prefix"""
+        for interface_name in self.addedInterfaces:
+            self._saveCapture(testname, methodname, interface_name)
+
+    def _run(self, test, method):
+        """Do the real work"""
         self.drone.clearStats(self.tx_port)
         self.drone.clearStats(self.rx_port)
         self.drone.startCapture(self.rx_port)
@@ -312,7 +340,16 @@ class Traffic(object):
         self.drone.stopTransmit(self.tx_port)
         self.drone.stopCapture(self.rx_port)
         self.tx_stats = self.drone.getStats(self.tx_port)
+        self._saveCaptures(test, method)
         self._cleanupRun()
+
+    def run(self):
+        """Run the streams"""
+        dbg_print('run')
+        frame = inspect.stack()[1][0]
+        method = inspect.stack()[1][3]
+        test = get_class_from_frame(frame).__name__
+        self._run(test, method)
 
     def getStats(self, interface_name):
         """Return the interface statistics"""
