@@ -48,6 +48,7 @@ class igmp_4_port_test(unittest2.TestCase):
         self.sut.up(self.config.SUT_LAN3)
 
         self.sut.addBridge('br1')
+        self.sut.addBridgeIgmpQuerier('br1')
         self.sut.up('br1')
         self.sut.addAddress('br1', '192.168.58.42/24')
         self.sut.addBridgeInterface('br1', self.config.SUT_LAN0)
