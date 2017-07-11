@@ -12,11 +12,9 @@ import traffic
 
 zero_stats = {
     'rx_pkts': 0L,
-    'rx_bytes': 0L,
     'rx_pps': 0L,
     'rx_bps': 0L,
     'tx_pkts': 0L,
-    'tx_bytes': 0L,
     'tx_pps': 0L,
     'tx_bps': 0L,
     'rx_drops': 0L,
@@ -27,11 +25,9 @@ zero_stats = {
 
 tx_5_stats = {
     'rx_pkts': 0L,
-    'rx_bytes': 0L,
     'rx_pps': 0L,
     'rx_bps': 0L,
     'tx_pkts': 5L,
-    'tx_bytes': 640L,
     'tx_pps': 0L,
     'tx_bps': 0L,
     'rx_drops': 0L,
@@ -42,11 +38,9 @@ tx_5_stats = {
 
 tx_10_stats = {
     'rx_pkts': 0L,
-    'rx_bytes': 0L,
     'rx_pps': 0L,
     'rx_bps': 0L,
     'tx_pkts': 10L,
-    'tx_bytes': 1280L,
     'tx_pps': 0L,
     'tx_bps': 0L,
     'rx_drops': 0L,
@@ -57,11 +51,9 @@ tx_10_stats = {
 
 tx_20_stats = {
     'rx_pkts': 0L,
-    'rx_bytes': 0L,
     'rx_pps': 0L,
     'rx_bps': 0L,
     'tx_pkts': 20L,
-    'tx_bytes': 2560L,
     'tx_pps': 0L,
     'tx_bps': 0L,
     'rx_drops': 0L,
@@ -72,11 +64,9 @@ tx_20_stats = {
 
 tx_40_stats = {
     'rx_pkts': 0L,
-    'rx_bytes': 0L,
     'rx_pps': 0L,
     'rx_bps': 0L,
     'tx_pkts': 40L,
-    'tx_bytes': 5120L,
     'tx_pps': 0L,
     'tx_bps': 0L,
     'rx_drops': 0L,
@@ -87,11 +77,9 @@ tx_40_stats = {
 
 rx_10_stats = {
     'rx_pkts': 10L,
-    'rx_bytes': 1280L,
     'rx_pps': 0L,
     'rx_bps': 0L,
     'tx_pkts': 0L,
-    'tx_bytes': 0L,
     'tx_pps': 0L,
     'tx_bps': 0L,
     'rx_drops': 0L,

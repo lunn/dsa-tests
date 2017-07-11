@@ -12,11 +12,9 @@ import traffic
 
 zero_stats = {
     'rx_pkts': 0L,
-    'rx_bytes': 0L,
     'rx_pps': 0L,
     'rx_bps': 0L,
     'tx_pkts': 0L,
-    'tx_bytes': 0L,
     'tx_pps': 0L,
     'tx_bps': 0L,
     'rx_drops': 0L,
@@ -27,11 +25,9 @@ zero_stats = {
 
 tx_10_stats = {
     'rx_pkts': 0L,
-    'rx_bytes': 0L,
     'rx_pps': 0L,
     'rx_bps': 0L,
     'tx_pkts': 10L,
-    'tx_bytes': 1280L,
     'tx_pps': 0L,
     'tx_bps': 0L,
     'rx_drops': 0L,
@@ -42,11 +38,9 @@ tx_10_stats = {
 
 tx_30_stats = {
     'rx_pkts': 0L,
-    'rx_bytes': 0L,
     'rx_pps': 0L,
     'rx_bps': 0L,
     'tx_pkts': 30L,
-    'tx_bytes': 3840L,
     'tx_pps': 0L,
     'tx_bps': 0L,
     'rx_drops': 0L,
@@ -57,11 +51,9 @@ tx_30_stats = {
 
 rx_10_stats = {
     'rx_pkts': 10L,
-    'rx_bytes': 1280L,
     'rx_pps': 0L,
     'rx_bps': 0L,
     'tx_pkts': 0L,
-    'tx_bytes': 0L,
     'tx_pps': 0L,
     'tx_bps': 0L,
     'rx_drops': 0L,
@@ -72,11 +64,9 @@ rx_10_stats = {
 
 rx_20_stats = {
     'rx_pkts': 20L,
-    'rx_bytes': 2560L,
     'rx_pps': 0L,
     'rx_bps': 0L,
     'tx_pkts': 0L,
-    'tx_bytes': 0L,
     'tx_pps': 0L,
     'tx_bps': 0L,
     'rx_drops': 0L,
@@ -87,11 +77,9 @@ rx_20_stats = {
 
 rx_30_stats = {
     'rx_pkts': 30L,
-    'rx_bytes': 3840L,
     'rx_pps': 0L,
     'rx_bps': 0L,
     'tx_pkts': 0L,
-    'tx_bytes': 0L,
     'tx_pps': 0L,
     'tx_bps': 0L,
     'rx_drops': 0L,
@@ -224,7 +212,7 @@ class two_bridges_4_ports_test(unittest2.TestCase):
 
         self.assertTrue(stats_lan0 == rx_10_stats or
                         stats_lan0 == rx_20_stats or
-                        stats_lan0 == rx_30_stats)
+                        stats_lan0 == rx_30_stats, stats_lan0)
         self.assertEqual(stats_lan1, tx_30_stats)
         self.assertEqual(stats_lan2, zero_stats)
         self.assertEqual(stats_lan3, zero_stats)
@@ -249,7 +237,7 @@ class two_bridges_4_ports_test(unittest2.TestCase):
         self.assertEqual(stats_lan1, zero_stats)
         self.assertEqual(stats_lan2, tx_30_stats)
         self.assertTrue(stats_lan3 == rx_10_stats or
-                        stats_lan3 == rx_30_stats)
+                        stats_lan3 == rx_30_stats, stats_lan3)
 
 
     def test_06_bridged_unicast_lan3(self):
@@ -271,7 +259,7 @@ class two_bridges_4_ports_test(unittest2.TestCase):
         self.assertEqual(stats_lan0, zero_stats)
         self.assertEqual(stats_lan1, zero_stats)
         self.assertTrue(stats_lan2 == rx_10_stats or
-                        stats_lan2 == rx_30_stats)
+                        stats_lan2 == rx_30_stats, stats_lan2)
         self.assertEqual(stats_lan3, tx_30_stats)
 
     def test_07_bridged_broadcast_lan0(self):

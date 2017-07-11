@@ -359,11 +359,9 @@ class Traffic(object):
             if port_stats.port_id.id == port_id:
                 stats = {
                     'rx_pkts': port_stats.rx_pkts,
-                    'rx_bytes': port_stats.rx_bytes,
                     'rx_pps': port_stats.rx_pps,
                     'rx_bps': port_stats.rx_bps,
                     'tx_pkts': port_stats.tx_pkts,
-                    'tx_bytes': port_stats.tx_bytes,
                     'tx_pps': port_stats.tx_pps,
                     'tx_bps': port_stats.tx_bps,
                     'rx_drops': port_stats.rx_drops,

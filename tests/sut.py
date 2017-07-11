@@ -5,11 +5,11 @@ import re
 import paramiko
 
 DEBUG = False
-STATS_FILES = ['collisions', 'multicast', 'rx_bytes', 'rx_compressed',
+STATS_FILES = ['collisions', 'multicast', 'rx_compressed',
                'rx_crc_errors', 'rx_dropped', 'rx_errors', 'rx_fifo_errors',
                'rx_frame_errors', 'rx_length_errors', 'rx_missed_errors',
                'rx_over_errors', 'rx_packets', 'tx_aborted_errors',
-               'tx_bytes', 'tx_carrier_errors', 'tx_compressed',
+               'tx_carrier_errors', 'tx_compressed',
                'tx_dropped', 'tx_errors', 'tx_fifo_errors',
                'tx_heartbeat_errors', 'tx_packets', 'tx_window_errors']
 
