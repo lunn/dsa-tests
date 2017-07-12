@@ -37,6 +37,7 @@ class igmp_test(unittest2.TestCase):
         self.config = CONFIG
         self.maxDiff = None
         self.vlan_filtering = VLAN_FILTERING
+        self.hostname = CONFIG.hostname
 
     def _check_zero(self,
                     ethtool_stats_lan0, ethtool_stats_lan3,
@@ -197,9 +198,12 @@ class igmp_test(unittest2.TestCase):
                                         ethtool_stats_lan5,
                                         ethtool_rx_0_tx_0, self)
 
-        self.sut.checkEthtoolStatsRange(self.config.SUT_LAN6,
-                                        ethtool_stats_lan6,
-                                        ethtool_rx_0_tx_0, self)
+        if 'zii_devel_b' not in self.hostname:
+            # The third switch does not have the hardware needed to properly
+            # support cross chip bridges. Packets leak.
+            self.sut.checkEthtoolStatsRange(self.config.SUT_LAN6,
+                                            ethtool_stats_lan6,
+                                            ethtool_rx_0_tx_0, self)
 
         self.sut.checkEthtoolStatsRange(self.config.SUT_OPTICAL3,
                                         ethtool_stats_optical3,
@@ -395,9 +399,12 @@ class igmp_test(unittest2.TestCase):
                                         ethtool_stats_lan5,
                                         ethtool_rx_5_tx_0, self)
 
-        self.sut.checkEthtoolStatsRange(self.config.SUT_LAN6,
-                                        ethtool_stats_lan6,
-                                        ethtool_rx_0_tx_0, self)
+        if 'zii_devel_b' not in self.hostname:
+            # The third switch does not have the hardware needed to properly
+            # support cross chip bridges. Packets leak.
+            self.sut.checkEthtoolStatsRange(self.config.SUT_LAN6,
+                                            ethtool_stats_lan6,
+                                            ethtool_rx_0_tx_0, self)
 
         self.sut.checkEthtoolStatsRange(self.config.SUT_OPTICAL3,
                                         ethtool_stats_optical3,
