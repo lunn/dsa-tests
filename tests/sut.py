@@ -32,6 +32,21 @@ class SUT(object):
         self.error = ""
         self.interfaces = self.getInterfaces()
 
+    def start_ssh(self, command):
+        """Start a command running on the SUT, which is expected
+           to be long running. Return a handle to it, so it can later
+           be killed/close"""
+        transport = self.sshClient.get_transport()
+        channel = transport.open_session()
+        channel.exec_command(command)
+
+        return channel
+
+    def stop_ssh(self, channel):
+        """Stop a command running on the SUT that was started using
+           start_ssh()."""
+        channel.close()
+
     def ssh(self, command):
         """Execute a command on the SUT, using SSH"""
         self.exit_code = None
