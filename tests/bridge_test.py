@@ -122,6 +122,7 @@ class bridge_test(unittest2.TestCase):
         self.config = CONFIG
         self.maxDiff = None
         self.vlan_filtering = VLAN_FILTERING
+        self.hostname = CONFIG.hostname
 
     def test_01_create_bridge(self):
         """Create the bridge"""
@@ -203,8 +204,11 @@ class bridge_test(unittest2.TestCase):
         self.assertEqual(stats_lan3, zero_stats)
         self.assertEqual(stats_lan4, zero_stats)
         self.assertEqual(stats_lan5, tx_10_stats)
-        self.assertEqual(stats_lan6, zero_stats)
-        self.assertEqual(stats_optical3, tx_10_stats)
+        if 'zii-devel-b' not in self.hostname:
+            # The third switch does not have the hardware needed to properly
+            # support cross chip bridges. Packets leak.
+            self.assertEqual(stats_lan6, zero_stats)
+            self.assertEqual(stats_optical3, tx_10_stats)
 
         self.sut.checkEthtoolStatsRange(self.config.SUT_LAN0,
                                         ethtool_stats_lan0,
@@ -224,12 +228,15 @@ class bridge_test(unittest2.TestCase):
         self.sut.checkEthtoolStatsRange(self.config.SUT_LAN5,
                                         ethtool_stats_lan5,
                                         ethtool_rx_5_broadcast_5, self)
-        self.sut.checkEthtoolStatsRange(self.config.SUT_LAN6,
-                                        ethtool_stats_lan6,
-                                        ethtool_zero, self)
-        self.sut.checkEthtoolStatsRange(self.config.SUT_OPTICAL3,
-                                        ethtool_stats_optical3,
-                                        ethtool_rx_5_broadcast_5, self)
+        if 'zii-devel-b' not in self.hostname:
+            # The third switch does not have the hardware needed to properly
+            # support cross chip bridges. Packets leak.
+            self.sut.checkEthtoolStatsRange(self.config.SUT_LAN6,
+                                            ethtool_stats_lan6,
+                                            ethtool_zero, self)
+            self.sut.checkEthtoolStatsRange(self.config.SUT_OPTICAL3,
+                                            ethtool_stats_optical3,
+                                            ethtool_rx_5_broadcast_5, self)
 
     def test_03_bridged_unicast_lan1(self):
         """Send traffic between bridged ports, and ensure they come out the
@@ -511,8 +518,11 @@ class bridge_test(unittest2.TestCase):
         self.assertEqual(stats_lan3, zero_stats)
         self.assertEqual(stats_lan4, zero_stats)
         self.assertEqual(stats_lan5, zero_stats)
-        self.assertEqual(stats_lan6, zero_stats)
-        self.assertEqual(stats_optical3, zero_stats)
+        if 'zii-devel-b' not in self.hostname:
+            # The third switch does not have the hardware needed to properly
+            # support cross chip bridges. Packets leak.
+            self.assertEqual(stats_lan6, zero_stats)
+            self.assertEqual(stats_optical3, zero_stats)
 
     def test_10_bridged_broadcast_lan1(self):
         """Send traffic between bridged ports, and ensure they come out the
@@ -536,7 +546,10 @@ class bridge_test(unittest2.TestCase):
         self.assertEqual(stats_lan4, rx_10_stats)
         self.assertEqual(stats_lan5, zero_stats)
         self.assertEqual(stats_lan6, rx_10_stats)
-        self.assertEqual(stats_optical3, zero_stats)
+        if 'zii-devel-b' not in self.hostname:
+            # The third switch does not have the hardware needed to properly
+            # support cross chip bridges. Packets leak.
+            self.assertEqual(stats_optical3, zero_stats)
 
     def test_11_bridged_broadcast_lan2(self):
         """Send traffic between bridged ports, and ensure they come out the
@@ -560,7 +573,10 @@ class bridge_test(unittest2.TestCase):
         self.assertEqual(stats_lan4, rx_10_stats)
         self.assertEqual(stats_lan5, zero_stats)
         self.assertEqual(stats_lan6, rx_10_stats)
-        self.assertEqual(stats_optical3, zero_stats)
+        if 'zii-devel-b' not in self.hostname:
+            # The third switch does not have the hardware needed to properly
+            # support cross chip bridges. Packets leak.
+            self.assertEqual(stats_optical3, zero_stats)
 
     def test_12_bridged_broadcast_lan3(self):
         """Send traffic between bridged ports, and ensure they come out the
@@ -584,7 +600,10 @@ class bridge_test(unittest2.TestCase):
         self.assertEqual(stats_lan4, rx_10_stats)
         self.assertEqual(stats_lan5, zero_stats)
         self.assertEqual(stats_lan6, rx_10_stats)
-        self.assertEqual(stats_optical3, zero_stats)
+        if 'zii-devel-b' not in self.hostname:
+            # The third switch does not have the hardware needed to properly
+            # support cross chip bridges. Packets leak.
+            self.assertEqual(stats_optical3, zero_stats)
 
     def test_13_bridged_broadcast_lan5(self):
         """Send traffic between bridged ports, and ensure they come out the
@@ -607,8 +626,11 @@ class bridge_test(unittest2.TestCase):
         self.assertEqual(stats_lan3, zero_stats)
         self.assertEqual(stats_lan4, zero_stats)
         self.assertEqual(stats_lan5, tx_10_stats)
-        self.assertEqual(stats_lan6, zero_stats)
-        self.assertEqual(stats_optical3, zero_stats)
+        if 'zii-devel-b' not in self.hostname:
+            # The third switch does not have the hardware needed to properly
+            # support cross chip bridges. Packets leak.
+            self.assertEqual(stats_lan6, zero_stats)
+            self.assertEqual(stats_optical3, zero_stats)
 
     def test_14_bridged_broadcast_lan6(self):
         """Send traffic between bridged ports, and ensure they come out the
