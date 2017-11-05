@@ -138,6 +138,10 @@ class bridge_test(unittest2.TestCase):
         self.sut.up(self.config.SUT_OPTICAL3)
 
         self.sut.addBridge('br1')
+
+        if self.vlan_filtering:
+            self.sut.bridgeEnableVlanFiltering('br1')
+
         self.sut.up('br1')
         self.sut.addBridgeInterface('br1', self.config.SUT_LAN1)
         self.sut.addBridgeInterface('br1', self.config.SUT_LAN2)
@@ -156,9 +160,6 @@ class bridge_test(unittest2.TestCase):
         self.traffic.addInterface(self.config.HOST_LAN5)
         self.traffic.addInterface(self.config.HOST_LAN6)
         self.traffic.addInterface(self.config.HOST_OPTICAL3)
-
-        if self.vlan_filtering:
-            self.sut.bridgeEnableVlanFiltering('br1')
 
     def test_01_learn(self):
         """Send learning packets, so the bridge knows which MAC address

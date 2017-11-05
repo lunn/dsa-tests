@@ -50,6 +50,10 @@ class igmp_4_port_test(unittest2.TestCase):
 
         self.sut.addBridge('br1')
         self.sut.addBridgeIgmpQuerier('br1')
+
+        if self.vlan_filtering:
+            self.sut.bridgeEnableVlanFiltering('br1')
+
         self.sut.up('br1')
         self.sut.addAddress('br1', '192.168.58.42/24')
         self.sut.addBridgeInterface('br1', self.config.SUT_LAN0)
@@ -75,9 +79,6 @@ class igmp_4_port_test(unittest2.TestCase):
         self.host.addAddress(self.config.HOST_LAN0, '192.168.58.1/24')
         self.host.addAddress(self.config.HOST_LAN1, '192.168.58.2/24')
         self.host.addAddress(self.config.HOST_LAN2, '192.168.58.3/24')
-
-        if self.vlan_filtering:
-            self.sut.bridgeEnableVlanFiltering('br1')
 
         # Send learning packets, so the bridge knows which MAC address
         # is where
