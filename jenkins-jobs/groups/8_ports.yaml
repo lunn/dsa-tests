@@ -1,5 +1,6 @@
 - job-group:
     name: '{name}-8_port_tests'
+    vlanfiltering: ''
     jobs:
       - '{number}_{target}_link':
           downstream: '{job_prefix}020_{target}_{config_prefix}_dsa.config_compile_linux'
@@ -145,7 +146,7 @@
           number: '{job_prefix}059'
           test_name: 'igmp'
 
-      # DSA, bridge and vlan filtered
+      # DSA, bridge and vlan filtered disabled
       - '{number}_{target}_{kernel_config}_compile_linux':
           downstream: '{job_prefix}061_{target}_reboot'
           number: '{job_prefix}060'
@@ -190,9 +191,58 @@
           test_name: 'igmp_4_ports'
 
       - '{number}_{target}_{test_name}_test':
-          downstream: '{job_prefix}999_{target}_halt'
+          downstream: '{job_prefix}072_{target}_ping_individual_4_ports_test'
           number: '{job_prefix}069'
           test_name: 'igmp'
+
+      # DSA, bridge and vlan filtered enabled
+      - '{number}_{target}_{test_name}_test':
+          downstream: '{job_prefix}073_{target}_ping_individual_test'
+          number: '{job_prefix}072'
+          test_name: 'ping_individual_4_ports'
+          vlanfiltering: '--vlanfiltering'
+
+      - '{number}_{target}_{test_name}_test':
+          downstream: '{job_prefix}074_{target}_ping_bridges_4_ports_test'
+          number: '{job_prefix}073'
+          test_name: 'ping_individual'
+          vlanfiltering: '--vlanfiltering'
+
+      - '{number}_{target}_{test_name}_test':
+          downstream: '{job_prefix}075_{target}_ping_bridges_test'
+          number: '{job_prefix}074'
+          test_name: 'ping_bridges_4_ports'
+          vlanfiltering: '--vlanfiltering'
+
+      - '{number}_{target}_{test_name}_test':
+          downstream: '{job_prefix}076_{target}_bridge_test'
+          number: '{job_prefix}075'
+          test_name: 'ping_bridges'
+          vlanfiltering: '--vlanfiltering'
+
+      - '{number}_{target}_{test_name}_test':
+          downstream: '{job_prefix}077_{target}_2_bridges_4_ports_test'
+          number: '{job_prefix}076'
+          test_name: 'bridge'
+          vlanfiltering: '--vlanfiltering'
+
+      - '{number}_{target}_{test_name}_test':
+          downstream: '{job_prefix}078_{target}_igmp_4_ports_test'
+          number: '{job_prefix}077'
+          test_name: '2_bridges_4_ports'
+          vlanfiltering: '--vlanfiltering'
+
+      - '{number}_{target}_{test_name}_test':
+          downstream: '{job_prefix}079_{target}_igmp_test'
+          number: '{job_prefix}078'
+          test_name: 'igmp_4_ports'
+          vlanfiltering: '--vlanfiltering'
+
+      - '{number}_{target}_{test_name}_test':
+          downstream: '{job_prefix}999_{target}_halt'
+          number: '{job_prefix}079'
+          test_name: 'igmp'
+          vlanfiltering: '--vlanfiltering'
 
       # All done, power off
       - '{number}_{target}_halt':

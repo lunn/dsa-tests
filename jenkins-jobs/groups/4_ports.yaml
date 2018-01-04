@@ -1,5 +1,6 @@
 - job-group:
     name: '{name}-4_port_tests'
+    vlanfiltering: ''
     jobs:
       - '{number}_{target}_link':
           downstream: '{job_prefix}020_{target}_{config_prefix}_dsa.config_compile_linux'
@@ -90,7 +91,7 @@
           number: '{job_prefix}054'
           test_name: 'igmp_4_ports'
 
-      # DSA, bridge and vlan filtered
+      # DSA, bridge and vlan filtered disabled
       - '{number}_{target}_{kernel_config}_compile_linux':
           downstream: '{job_prefix}061_{target}_reboot'
           number: '{job_prefix}060'
@@ -111,9 +112,28 @@
           test_name: 'ping_bridges_4_ports'
 
       - '{number}_{target}_{test_name}_test':
-          downstream: '{job_prefix}999_{target}_halt'
+          downstream: '{job_prefix}072_{target}_ping_individual_4_ports_test'
           number: '{job_prefix}064'
           test_name: 'igmp_4_ports'
+
+      # DSA, bridge and vlan filtered enabled
+      - '{number}_{target}_{test_name}_test':
+          downstream: '{job_prefix}073_{target}_ping_bridges_4_ports_test'
+          number: '{job_prefix}072'
+          test_name: 'ping_individual_4_ports'
+          vlanfiltering: '--vlanfiltering'
+
+      - '{number}_{target}_{test_name}_test':
+          downstream: '{job_prefix}074_{target}_igmp_4_ports_test'
+          number: '{job_prefix}073'
+          test_name: 'ping_bridges_4_ports'
+          vlanfiltering: '--vlanfiltering'
+
+      - '{number}_{target}_{test_name}_test':
+          downstream: '{job_prefix}999_{target}_halt'
+          number: '{job_prefix}074'
+          test_name: 'igmp_4_ports'
+          vlanfiltering: '--vlanfiltering'
 
       # All done, power off
       - '{number}_{target}_halt':
