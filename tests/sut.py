@@ -31,6 +31,7 @@ class SUT(object):
         self.exit_code = None
         self.error = ""
         self.interfaces = self.getInterfaces()
+        self.fdb = []
 
     def start_ssh(self, command):
         """Start a command running on the SUT, which is expected
@@ -67,6 +68,10 @@ class SUT(object):
             raise NameError('Exit code mismatch {0} != {1}\n{2}'.format(
                 self.exit_code, code, self.error))
 
+    def getDmsg(self):
+        """Return the recent kernel messages"""
+        return self.ssh('dmesg')
+
     def getInterfaces(self):
         """Return a list of network interface names"""
         interfaces = []
@@ -76,8 +81,8 @@ class SUT(object):
             match = pattern.match(line)
             if match:
                 interfaces.append(match.group(1))
-        self.interfaces = interfaces
-        self.checkExitCode(0)
+                self.interfaces = interfaces
+                self.checkExitCode(0)
         return interfaces
 
     def getBridges(self):
@@ -144,12 +149,27 @@ class SUT(object):
             address, interface))
         self.checkExitCode(0)
 
+    def getMacAddress(self, interface):
+        """Get the MAC address on an interface"""
+        if interface not in self.interfaces:
+            raise NameError('getMacAddress called for unknown interface')
+        pattern = re.compile(
+            ' *link/ether ((?:[a-f0-9][a-f0-9]:){5}[a-f0-9][a-f0-9]).*')
+        results = self.ssh('ip link show dev {0}'.format(interface))
+        for line in results.splitlines():
+            match = pattern.match(line)
+            if match:
+                return match.group(1)
+        raise NameError('No MAC address for interface {0}'.format(
+            interface))
+
     def flushAddresses(self, interface):
         """Remove all addresses from an interface"""
         if interface not in self.interfaces:
             raise NameError('flushAddresses called for unknown interface')
         self.ssh('ip addr flush dev {0}'.format(interface))
         self.checkExitCode(0)
+
 
     def deleteBridge(self, bridge):
         """Destroy the given bridge"""
@@ -226,6 +246,59 @@ class SUT(object):
         self.ssh('echo 0 >/sys/class/net/{0}/bridge/vlan_filtering'.format(
             bridge))
         self.checkExitCode(0)
+
+    def getFdb(self, interface):
+        """Return a list of fdb entries on the given interface"""
+        if interface not in self.interfaces:
+            raise NameError('getFdb called for unknown interface')
+        macs = []
+        results = self.ssh('bridge fdb show dev {0}'.format(interface))
+        pattern = re.compile('((?:[a-f0-9][a-f0-9]:){5}[a-f0-9][a-f0-9]) self')
+        for line in results.splitlines():
+            match = pattern.match(line)
+            if match:
+                macs.append(match.group(1))
+        return macs
+
+    def addFdb(self, interface, address):
+        """Add a static fdb entry on the interface"""
+        if interface not in self.interfaces:
+            raise NameError('addFdb called for unknown interface')
+        self.ssh('bridge fdb add {0} dev {1}'.format(address, interface))
+        self.checkExitCode(0)
+        self.fdb.append((interface, address))
+
+    def delFdb(self, interface, address):
+        """Add a static fdb entry on the interface"""
+        if interface not in self.interfaces:
+            raise NameError('addFdb called for unknown interface')
+        self.ssh('bridge fdb del {0} dev {1}'.format(address, interface))
+        self.checkExitCode(0)
+        self.fdb.remove((interface, address))
+
+    def flushFdb(self):
+        """Flush all static fdb entries"""
+        for entry in self.fdb:
+            interface = entry[0]
+            address = entry[1]
+            self.ssh('bridge fdb del {0} dev {1}'.format(address, interface))
+        self.checkExitCode(0)
+        self.fdb = []
+
+    def getFdbStats(self):
+        """Get the ATU statistics"""
+        pattern = re.compile(
+            ' +0 +all +([0-9]+) +([0-9]+) +([0-9]+) +([0-9]+) +([0-9]+)')
+        results = self.ssh('cat /sys/kernel/debug/mv88e6xxx/sw0/atu/0-stats')
+        for line in results.splitlines():
+            match = pattern.match(line)
+            if match:
+                return (int(match.group(1)),
+                        int(match.group(2)),
+                        int(match.group(3)),
+                        int(match.group(4)),
+                        int(match.group(5)))
+        return None
 
     def _statsCheckRange(self, before, after, _range, unittest):
         """Perform the check that the statistics are within range"""
@@ -370,6 +443,7 @@ class SUT(object):
         if len(bonds):
             #  Todo: Implement cleanup of bonds
             raise NameError('SUT has some bonds: {0}'.format(bonds))
+        self.flushFdb()
         for bridge in bridges:
             self.deleteBridge(bridge)
         for interface in interfaces:

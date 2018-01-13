@@ -3,12 +3,13 @@
 # pylint: disable=E1101
 
 import inspect
+import netaddr
 import pprint
 import sys
 import time
 import ipaddress
 from ostinato.core import ost_pb, DroneProxy
-from ostinato.protocols.mac_pb2 import mac
+from ostinato.protocols.mac_pb2 import mac, Mac
 from ostinato.protocols.eth2_pb2 import eth2
 from ostinato.protocols.ip4_pb2 import ip4
 from ostinato.protocols.udp_pb2 import udp
@@ -56,21 +57,14 @@ class Traffic(object):
     def __del__(self):
         """Cleanup the streams"""
         for interface in self.interfaces:
-            self.drone.deleteStream(interface['stream_id_list'])
+            for stream_id_list in interface['stream_id_list_list']:
+                self.drone.deleteStream(stream_id_list)
         self.drone.disconnect()
 
     def _getInterfaces(self):
         """Create a list of interface dicts which can be used for streams"""
         interfaces = []
         for port in self.port_config_list.port:
-            stream_id_list = ost_pb.StreamIdList()
-            stream_id_list.stream_id.add().id = 1
-            stream_id_list.stream_id.add().id = 2
-            stream_id_list.stream_id.add().id = 3
-            stream_id_list.stream_id.add().id = 4
-            stream_id_list.stream_id.add().id = 5
-            stream_id_list.port_id.id = port.port_id.id
-            self.drone.addStream(stream_id_list)
             stream_cfg = ost_pb.StreamConfigList()
             stream_cfg.port_id.id = port.port_id.id
 
@@ -78,7 +72,7 @@ class Traffic(object):
                 'name': port.name,
                 'port_id': port.port_id,
                 'port_id_id': port.port_id.id,
-                'stream_id_list': stream_id_list,
+                'stream_id_list_list' : [],
                 'stream_cfg': stream_cfg,
                 'stream_id': 1,
             }
@@ -89,10 +83,9 @@ class Traffic(object):
         """Delete all current streams, so that we can create new
            once for the next run"""
         for interface in self.interfaces:
-            stream_id_list = interface['stream_id_list']
             port_id = interface['port_id_id']
-            self.drone.deleteStream(stream_id_list)
-            self.drone.addStream(stream_id_list)
+            for stream_id_list in interface['stream_id_list_list']:
+                self.drone.deleteStream(stream_id_list)
             stream_cfg = ost_pb.StreamConfigList()
             stream_cfg.port_id.id = port_id
             interface['stream_cfg'] = stream_cfg
@@ -137,16 +130,28 @@ class Traffic(object):
         """Return the MAC address of an interface"""
         return 0x001020304000 + interface['port_id_id']
 
+    def getInterfaceMacAddress(self, interface_name):
+        interface = self._getInterfaceByName(interface_name)
+        number = self._getInterfaceMacAddress(interface)
+        eui = netaddr.EUI(number)
+        eui.dialect = netaddr.mac_unix_expanded
+        return str(eui)
+
     def _getInterfaceIPAddress(self, interface):
         """Return the IP address of an interface"""
         return 0xc0a83a0a + interface['port_id_id']
 
-    def _addEthernetHeader(self, stream, src_mac, dst_mac):
+    def _addEthernetHeader(self, stream, src_mac, dst_mac, src_mac_count=0,
+                           src_mac_step=1):
         """Add an Ethernet header to a stream"""
         proto = stream.protocol.add()
         proto.protocol_id.id = ost_pb.Protocol.kMacFieldNumber
         proto.Extensions[mac].src_mac = src_mac
         proto.Extensions[mac].dst_mac = dst_mac
+        if src_mac_count:
+            proto.Extensions[mac].src_mac_mode = Mac.e_mm_inc
+            proto.Extensions[mac].src_mac_count = src_mac_count
+            proto.Extensions[mac].src_mac_step = src_mac_step
 
     def _addEthertypeIP(self, stream):
         """Add an Ethernet Type header for IP to a stream"""
@@ -184,6 +189,11 @@ class Traffic(object):
 
     def _addStream(self, stream_cfg, interface, num_packets, packets_per_sec):
         """Add a stream to an interface, and return it"""
+        stream_id_list = ost_pb.StreamIdList()
+        stream_id_list.stream_id.add().id = interface['stream_id']
+        stream_id_list.port_id.id = interface['port_id_id']
+        self.drone.addStream(stream_id_list)
+        interface['stream_id_list_list'].append(stream_id_list)
         stream = stream_cfg.stream.add()
         stream.stream_id.id = interface['stream_id']
         interface['stream_id'] = interface['stream_id'] + 1
@@ -193,10 +203,13 @@ class Traffic(object):
         stream.control.packets_per_sec = packets_per_sec
         return stream
 
-    def _addUDPPacketStream(self, stream, src_mac, dst_mac, src_ip, dst_ip):
+    def _addUDPPacketStream(self, stream, src_mac, src_mac_count, src_mac_step,
+                            dst_mac, src_ip, dst_ip):
         """Add a UDP packets to a stream"""
         self._addEthernetHeader(stream, src_mac=src_mac,
-                                dst_mac=dst_mac)
+                                dst_mac=dst_mac,
+                                src_mac_count=src_mac_count,
+                                src_mac_step=src_mac_step)
         self._addEthertypeIP(stream)
         self._addIPHeader(stream, src_ip=src_ip, dst_ip=dst_ip)
         self._addUdpHeader(stream, 0x1234, 0x4321)
@@ -222,7 +235,33 @@ class Traffic(object):
         src_ip = self._getInterfaceIPAddress(src_interface)
         dst_ip = self._getInterfaceIPAddress(dst_interface)
 
-        self._addUDPPacketStream(stream, src_mac, dst_mac, src_ip, dst_ip)
+        self._addUDPPacketStream(stream, src_mac, 0, 1, dst_mac, src_ip, dst_ip)
+        self.drone.modifyStream(stream_cfg)
+
+    def addUDPMacIncStream(self, src_interface_name, dst_interface_name,
+                           src_mac, num_packets, packets_per_sec,
+                           src_mac_count=0, src_mac_step=1):
+        """Add a UDP stream from the source interface to the
+           destination interface, using the given src MAC addresses"""
+        dbg_print('addUDPMacIncStream({0} {1} {2} {3} {4} {5} {6})'.
+                  format(src_interface_name,
+                         dst_interface_name,
+                         src_mac,
+                         src_mac_count,
+                         src_mac_step,
+                         num_packets,
+                         packets_per_sec))
+        src_interface = self._getInterfaceByName(src_interface_name)
+        dst_interface = self._getInterfaceByName(dst_interface_name)
+        stream_cfg = src_interface['stream_cfg']
+        stream = self._addStream(stream_cfg, src_interface, num_packets,
+                                 packets_per_sec)
+        dst_mac = self._getInterfaceMacAddress(dst_interface)
+        src_ip = self._getInterfaceIPAddress(src_interface)
+        dst_ip = self._getInterfaceIPAddress(dst_interface)
+
+        self._addUDPPacketStream(stream, src_mac, src_mac_count, src_mac_step,
+                                 dst_mac, src_ip, dst_ip)
         self.drone.modifyStream(stream_cfg)
 
     def addUDPBroadcastStream(self, src_interface_name, num_packets,
@@ -238,11 +277,10 @@ class Traffic(object):
         stream = self._addStream(stream_cfg, src_interface, num_packets,
                                  packets_per_sec)
         src_mac = self._getInterfaceMacAddress(src_interface)
-        dst_mac = 0xffffffffffff
         src_ip = self._getInterfaceIPAddress(src_interface)
+        dst_mac = 0xffffffffffff
         dst_ip = 0xc0a82aff
-
-        self._addUDPPacketStream(stream, src_mac, dst_mac, src_ip, dst_ip)
+        self._addUDPPacketStream(stream, src_mac, 0, 1, dst_mac, src_ip, dst_ip)
         self.drone.modifyStream(stream_cfg)
 
     def addUDPMulticastStream(self, src_interface_name, group_str, num_packets,
@@ -264,7 +302,7 @@ class Traffic(object):
         src_ip = self._getInterfaceIPAddress(src_interface)
         dst_ip = int(group)
 
-        self._addUDPPacketStream(stream, src_mac, dst_mac, src_ip, dst_ip)
+        self._addUDPPacketStream(stream, src_mac, 0, 1, dst_mac, src_ip, dst_ip)
         self.drone.modifyStream(stream_cfg)
 
     def addIGMPRequestStream(self, src_interface_name, group, num_packets,

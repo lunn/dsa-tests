@@ -1,7 +1,9 @@
 SRCS_PY 	:= sut.py host.py params.py bridge_test.py\
                    ping_individual_test.py ping_individual_4_ports_test.py \
 		   ping_bridges_test.py ping_bridges_4_ports_test.py \
-		   traffic.py 2_bridges_4_ports_test.py
+		   traffic.py 2_bridges_4_ports_test.py \
+		   macs_4_ports_test.py
+
 PYLINT_OPTS     := --rcfile=./pylintrc --unsafe-load-any-extension=y
 
 all: pep8 pylint
