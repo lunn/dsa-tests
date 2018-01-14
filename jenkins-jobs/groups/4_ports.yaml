@@ -47,9 +47,14 @@
           test_name: '2_bridges_4_ports'
 
       - '{number}_{target}_{test_name}_test':
-          downstream: '{job_prefix}040_{target}_{config_prefix}_dsa-802.1q.config_compile_linux'
+          downstream: '{job_prefix}036_{target}_macs_4_ports_test'
           number: '{job_prefix}035'
           test_name: 'igmp_4_ports'
+
+      - '{number}_{target}_{test_name}_test':
+          downstream: '{job_prefix}040_{target}_{config_prefix}_dsa-802.1q.config_compile_linux'
+          number: '{job_prefix}036'
+          test_name: 'macs_4_ports'
 
       # DSA and vlan
       - '{number}_{target}_{kernel_config}_compile_linux':
