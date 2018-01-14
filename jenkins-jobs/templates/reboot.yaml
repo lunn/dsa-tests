@@ -11,7 +11,7 @@
          ssh {hostname} "nohup halt > /dev/null 2>&1 &" || true
          sleep 10
          {reboot_cmd}
-         sleep 45
+         sleep 55
          ping -c 1 -w 60 {hostname}
     publishers:
       - trigger:
