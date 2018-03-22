@@ -55,6 +55,9 @@ def params():
     parser = argparse.ArgumentParser(description='Run some Bridge tests.')
     parser.add_argument("--config", "-c", help="Configuration file",
                         required=True)
+    parser.add_argument("--config-master", "-m",
+                        help="PTP Master Configuration file",
+                        required=False)
     parser.add_argument("--verbose", "-v", type=int,
                         help="Run the test with a verbose level",
                         default=0)

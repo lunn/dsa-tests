@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 """Model the System Under Test"""
+import datetime
 import pprint
 import re
 import paramiko
@@ -28,6 +29,7 @@ class SUT(object):
         self.sshClient = paramiko.SSHClient()
         self.sshClient.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         self.sshClient.connect(hostname, username='root', key_filename=key)
+        self.sftpClient = self.sshClient.open_sftp()
         self.exit_code = None
         self.error = ""
         self.interfaces = self.getInterfaces()
@@ -428,6 +430,39 @@ class SUT(object):
         after = self.getClassStats(interface)
         self._statsCheckRange(before, after, _range, unittest)
 
+    def phcGet(self, interface):
+        """Get the time from a Precision Hardware Counter"""
+        results = self.ssh('phc_ctl {0} get'.format(interface))
+        self.checkExitCode(0)
+        pattern = re.compile('phc_ctl\[.*\]: clock time is ([0-9]*.[0-9]*) or (.*)$')
+        for line in results.splitlines():
+            match = pattern.match(line)
+            if match:
+                seconds = float(match.group(1))
+                date = datetime.datetime.strptime(match.group(2), "%c")
+                return seconds, date
+
+    def phcSet(self, interface, seconds):
+        """Set the time on a Precision Hardware Counter"""
+        if seconds:
+            self.ssh('phc_ctl {0} set {1}'.format(interface, seconds))
+        else:
+            self.ssh('phc_ctl {0} set'.format(interface))
+        self.checkExitCode(0)
+
+    def serviceStart(self, service):
+        """Start a systemd service running on the SUT"""
+        self.ssh('systemctl start {0}'.format(service))
+        self.checkExitCode(0)
+
+    def serviceStop(self, service):
+        """Start a systemd service running on the SUT"""
+        self.ssh('systemctl stop {0}'.format(service))
+
+    def sftpPut(self, src, dst):
+        """Copy the src file to the sut"""
+        self.sftpClient.put(src, dst)
+
     def cleanSystem(self):
         """Clean the system i.e. remove all bridges, check there are no bonds,
            put all interfaces down"""
@@ -437,6 +472,7 @@ class SUT(object):
         interfaces = [interface for interface in interfaces if
                       (interface.startswith('lan') or
                        interface.startswith('optical') or
+                       interface.startswith('net') or
                        interface.startswith('port')) and
                       not interface.startswith(self.mgmt)]
 
