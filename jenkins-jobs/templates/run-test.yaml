@@ -7,7 +7,7 @@
     wrappers:
       - timeout:
           abort: true
-          timeout: 4
+          timeout: 6
       - timestamps
     builders:
       - shell: |
