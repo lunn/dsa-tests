@@ -41,6 +41,11 @@ class ping_bridges_4_ports_test(unittest2.TestCase):
         self.sut.addAddress(self.config.SUT_LAN2, '192.168.12.2/24')
         self.sut.addAddress(self.config.SUT_LAN3, '192.168.13.2/24')
 
+        self.sut.addAddress(self.config.SUT_LAN0, 'fd42:4242:10::2/64')
+        self.sut.addAddress(self.config.SUT_LAN1, 'fd42:4242:11::2/64')
+        self.sut.addAddress(self.config.SUT_LAN2, 'fd42:4242:12::2/64')
+        self.sut.addAddress(self.config.SUT_LAN3, 'fd42:4242:13::2/64')
+
         # Allow time for the interfaces to come up
         time.sleep(10)
 
@@ -63,6 +68,14 @@ class ping_bridges_4_ports_test(unittest2.TestCase):
         self.host.addAddress(self.config.HOST_LAN2, '192.168.12.1/24')
         self.host.addAddress(self.config.HOST_LAN3, '192.168.13.1/24')
 
+        self.host.addAddress(self.config.HOST_LAN0, 'fd42:4242:10::1/64')
+        self.host.addAddress(self.config.HOST_LAN1, 'fd42:4242:11::1/64')
+        self.host.addAddress(self.config.HOST_LAN2, 'fd42:4242:12::1/64')
+        self.host.addAddress(self.config.HOST_LAN3, 'fd42:4242:13::1/64')
+
+        # Allow time for the interfaces to come up
+        time.sleep(5)
+
     def test_02_ping(self):
         """Ping the SUT. We expect replies for all interfaces"""
         self.assertTrue(self.host.ping('192.168.10.2'))
@@ -70,14 +83,21 @@ class ping_bridges_4_ports_test(unittest2.TestCase):
         self.assertTrue(self.host.ping('192.168.12.2'))
         self.assertTrue(self.host.ping('192.168.13.2'))
 
+        self.assertTrue(self.host.ping('fd42:4242:10::2'))
+        self.assertTrue(self.host.ping('fd42:4242:11::2'))
+        self.assertTrue(self.host.ping('fd42:4242:12::2'))
+        self.assertTrue(self.host.ping('fd42:4242:13::2'))
+
     def test_03_lan0_br0(self):
         """Create a bridge and place only lan0 in it. Move lan0
            IP address to the bridge"""
         self.sut.delAddress(self.config.SUT_LAN0, '192.168.10.2/24')
+        self.sut.delAddress(self.config.SUT_LAN0, 'fd42:4242:10::2/64')
         self.sut.addBridge('br0')
         self.sut.up('br0')
         self.sut.addBridgeInterface('br0', self.config.SUT_LAN0)
         self.sut.addAddress('br0', '192.168.10.2/24')
+        self.sut.addAddress('br0', 'fd42:4242:10::3/64')
 
         # Wait the forwarding delay of the bridge
         time.sleep(7)
@@ -87,14 +107,21 @@ class ping_bridges_4_ports_test(unittest2.TestCase):
         self.assertTrue(self.host.ping('192.168.12.2'))
         self.assertTrue(self.host.ping('192.168.13.2'))
 
+        self.assertTrue(self.host.ping('fd42:4242:10::3'))
+        self.assertTrue(self.host.ping('fd42:4242:11::2'))
+        self.assertTrue(self.host.ping('fd42:4242:12::2'))
+        self.assertTrue(self.host.ping('fd42:4242:13::2'))
+
     def test_04_lan2_br2(self):
         """Create a bridge and place only lan2 in it. Move lan2
            IP address to the bridge"""
         self.sut.delAddress(self.config.SUT_LAN2, '192.168.12.2/24')
+        self.sut.delAddress(self.config.SUT_LAN2, 'fd42:4242:12::2/64')
         self.sut.addBridge('br2')
         self.sut.up('br2')
         self.sut.addBridgeInterface('br2', self.config.SUT_LAN2)
         self.sut.addAddress('br2', '192.168.12.2/24')
+        self.sut.addAddress('br2', 'fd42:4242:12::3/64')
 
         # Wait the forwarding delay of the bridge
         time.sleep(5)
@@ -103,15 +130,22 @@ class ping_bridges_4_ports_test(unittest2.TestCase):
         self.assertTrue(self.host.ping('192.168.11.2'))
         self.assertTrue(self.host.ping('192.168.12.2'))
         self.assertTrue(self.host.ping('192.168.13.2'))
+
+        self.assertTrue(self.host.ping('fd42:4242:10::3'))
+        self.assertTrue(self.host.ping('fd42:4242:11::2'))
+        self.assertTrue(self.host.ping('fd42:4242:12::3'))
+        self.assertTrue(self.host.ping('fd42:4242:13::2'))
 
     def test_05_lan3_br3(self):
         """Create a bridge and place only lan3 in it. Move lan3
            IP address to the bridge"""
         self.sut.delAddress(self.config.SUT_LAN3, '192.168.13.2/24')
+        self.sut.delAddress(self.config.SUT_LAN3, 'fd42:4242:13::2/64')
         self.sut.addBridge('br3')
         self.sut.up('br3')
         self.sut.addBridgeInterface('br3', self.config.SUT_LAN3)
         self.sut.addAddress('br3', '192.168.13.2/24')
+        self.sut.addAddress('br3', 'fd42:4242:13::3/64')
 
         # Wait the forwarding delay of the bridge
         time.sleep(5)
@@ -120,15 +154,22 @@ class ping_bridges_4_ports_test(unittest2.TestCase):
         self.assertTrue(self.host.ping('192.168.11.2'))
         self.assertTrue(self.host.ping('192.168.12.2'))
         self.assertTrue(self.host.ping('192.168.13.2'))
+
+        self.assertTrue(self.host.ping('fd42:4242:10::3'))
+        self.assertTrue(self.host.ping('fd42:4242:11::2'))
+        self.assertTrue(self.host.ping('fd42:4242:12::3'))
+        self.assertTrue(self.host.ping('fd42:4242:13::3'))
 
     def test_06_lan1_br1(self):
         """Create a bridge and place only lan1 in it. Move lan1
            IP address to the bridge"""
         self.sut.delAddress(self.config.SUT_LAN1, '192.168.11.2/24')
+        self.sut.delAddress(self.config.SUT_LAN1, 'fd42:4242:11::2/64')
         self.sut.addBridge('br1')
         self.sut.up('br1')
         self.sut.addBridgeInterface('br1', self.config.SUT_LAN1)
         self.sut.addAddress('br1', '192.168.11.2/24')
+        self.sut.addAddress('br1', 'fd42:4242:11::3/64')
 
         # Wait the forwarding delay of the bridge
         time.sleep(5)
@@ -137,50 +178,79 @@ class ping_bridges_4_ports_test(unittest2.TestCase):
         self.assertTrue(self.host.ping('192.168.11.2'))
         self.assertTrue(self.host.ping('192.168.12.2'))
         self.assertTrue(self.host.ping('192.168.13.2'))
+
+        self.assertTrue(self.host.ping('fd42:4242:10::3'))
+        self.assertTrue(self.host.ping('fd42:4242:11::3'))
+        self.assertTrue(self.host.ping('fd42:4242:12::3'))
+        self.assertTrue(self.host.ping('fd42:4242:13::3'))
 
     def test_07_remove_br0(self):
         """Remove br0 and place the IP address back on lan0"""
         self.sut.down('br0')
         self.sut.deleteBridge('br0')
         self.sut.addAddress(self.config.SUT_LAN0, '192.168.10.2/24')
+        self.sut.addAddress(self.config.SUT_LAN0, 'fd42:4242:10::2/64')
 
         self.assertTrue(self.host.ping('192.168.10.2'))
         self.assertTrue(self.host.ping('192.168.11.2'))
         self.assertTrue(self.host.ping('192.168.12.2'))
         self.assertTrue(self.host.ping('192.168.13.2'))
+
+        self.assertTrue(self.host.ping('fd42:4242:10::2'))
+        self.assertTrue(self.host.ping('fd42:4242:11::3'))
+        self.assertTrue(self.host.ping('fd42:4242:12::3'))
+        self.assertTrue(self.host.ping('fd42:4242:13::3'))
 
     def test_08_remove_br2(self):
         """Remove br2 and place the IP address back on lan2"""
         self.sut.down('br2')
         self.sut.deleteBridge('br2')
         self.sut.addAddress(self.config.SUT_LAN2, '192.168.12.2/24')
+        self.sut.addAddress(self.config.SUT_LAN2, 'fd42:4242:12::2/64')
 
         self.assertTrue(self.host.ping('192.168.10.2'))
         self.assertTrue(self.host.ping('192.168.11.2'))
         self.assertTrue(self.host.ping('192.168.12.2'))
         self.assertTrue(self.host.ping('192.168.13.2'))
+
+        self.assertTrue(self.host.ping('fd42:4242:10::2'))
+        self.assertTrue(self.host.ping('fd42:4242:11::3'))
+        self.assertTrue(self.host.ping('fd42:4242:12::2'))
+        self.assertTrue(self.host.ping('fd42:4242:13::3'))
 
     def test_09_remove_br3(self):
         """Remove br3 and place the IP address back on lan3"""
         self.sut.down('br3')
         self.sut.deleteBridge('br3')
         self.sut.addAddress(self.config.SUT_LAN3, '192.168.13.2/24')
+        self.sut.addAddress(self.config.SUT_LAN3, 'fd42:4242:13::2/64')
 
         self.assertTrue(self.host.ping('192.168.10.2'))
         self.assertTrue(self.host.ping('192.168.11.2'))
         self.assertTrue(self.host.ping('192.168.12.2'))
         self.assertTrue(self.host.ping('192.168.13.2'))
 
-    def test_09_remove_br1(self):
+        self.assertTrue(self.host.ping('fd42:4242:10::2'))
+        self.assertTrue(self.host.ping('fd42:4242:11::3'))
+        self.assertTrue(self.host.ping('fd42:4242:12::2'))
+        self.assertTrue(self.host.ping('fd42:4242:13::2'))
+
+    def test_10_remove_br1(self):
         """Remove br1 and place the IP address back on lan1"""
         self.sut.down('br1')
         self.sut.deleteBridge('br1')
         self.sut.addAddress(self.config.SUT_LAN1, '192.168.11.2/24')
+        self.sut.addAddress(self.config.SUT_LAN1, 'fd42:4242:11::2/64')
 
         self.assertTrue(self.host.ping('192.168.10.2'))
         self.assertTrue(self.host.ping('192.168.11.2'))
         self.assertTrue(self.host.ping('192.168.12.2'))
         self.assertTrue(self.host.ping('192.168.13.2'))
+
+        self.assertTrue(self.host.ping('fd42:4242:10::2'))
+        self.assertTrue(self.host.ping('fd42:4242:11::2'))
+        self.assertTrue(self.host.ping('fd42:4242:12::2'))
+        self.assertTrue(self.host.ping('fd42:4242:13::2'))
 
     def test_99_ping_down(self):
         """Down the interfaces on the SUT and then ping the SUT.

@@ -47,8 +47,14 @@ class ping_individual_test(unittest2.TestCase):
         self.sut.addAddress(self.config.SUT_LAN6, '192.168.16.2/24')
         self.sut.addAddress(self.config.SUT_OPTICAL3, '192.168.17.2/24')
 
-        # Allow time for the interfaces to come up
-        time.sleep(5)
+        self.sut.addAddress(self.config.SUT_LAN0, 'fd42:4242:10::2/64')
+        self.sut.addAddress(self.config.SUT_LAN1, 'fd42:4242:11::2/64')
+        self.sut.addAddress(self.config.SUT_LAN2, 'fd42:4242:12::2/64')
+        self.sut.addAddress(self.config.SUT_LAN3, 'fd42:4242:13::2/64')
+        self.sut.addAddress(self.config.SUT_LAN4, 'fd42:4242:14::2/64')
+        self.sut.addAddress(self.config.SUT_LAN5, 'fd42:4242:15::2/64')
+        self.sut.addAddress(self.config.SUT_LAN6, 'fd42:4242:16::2/64')
+        self.sut.addAddress(self.config.SUT_OPTICAL3, 'fd42:4242:17::2/64')
 
     def test_01_setup_host(self):
         """Setup IP addresses on the host device"""
@@ -71,6 +77,18 @@ class ping_individual_test(unittest2.TestCase):
         self.host.addAddress(self.config.HOST_LAN6, '192.168.16.1/24')
         self.host.addAddress(self.config.HOST_OPTICAL3, '192.168.17.1/24')
 
+        self.host.addAddress(self.config.HOST_LAN0, 'fd42:4242:10::1/64')
+        self.host.addAddress(self.config.HOST_LAN1, 'fd42:4242:11::1/64')
+        self.host.addAddress(self.config.HOST_LAN2, 'fd42:4242:12::1/64')
+        self.host.addAddress(self.config.HOST_LAN3, 'fd42:4242:13::1/64')
+        self.host.addAddress(self.config.HOST_LAN4, 'fd42:4242:14::1/64')
+        self.host.addAddress(self.config.HOST_LAN5, 'fd42:4242:15::1/64')
+        self.host.addAddress(self.config.HOST_LAN6, 'fd42:4242:16::1/64')
+        self.host.addAddress(self.config.HOST_OPTICAL3, 'fd42:4242:17::1/64')
+
+        # Allow time for the interfaces to come up
+        time.sleep(5)
+
     def test_02_ping(self):
         """Ping the SUT. We expect replies for all interfaces"""
         self.assertTrue(self.host.ping('192.168.10.2'))
@@ -82,7 +100,18 @@ class ping_individual_test(unittest2.TestCase):
         self.assertTrue(self.host.ping('192.168.16.2'))
         self.assertTrue(self.host.ping('192.168.17.2'))
 
-    def test_03_ping_down(self):
+    def test_03_ping_ipv6(self):
+        """Ping the SUT. We expect replies for all interfaces"""
+        self.assertTrue(self.host.ping('fd42:4242:10::2'))
+        self.assertTrue(self.host.ping('fd42:4242:11::2'))
+        self.assertTrue(self.host.ping('fd42:4242:12::2'))
+        self.assertTrue(self.host.ping('fd42:4242:13::2'))
+        self.assertTrue(self.host.ping('fd42:4242:14::2'))
+        self.assertTrue(self.host.ping('fd42:4242:15::2'))
+        self.assertTrue(self.host.ping('fd42:4242:16::2'))
+        self.assertTrue(self.host.ping('fd42:4242:17::2'))
+
+    def test_04_ping_down(self):
         """Down the interfaces on the SUT and then ping the SUT.
            We don't expect replies for all interfaces"""
         self.sut.down(self.config.SUT_LAN0)

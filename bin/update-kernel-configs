@@ -6,7 +6,7 @@ DSATESTBINDIR=$( dirname $0 )
 DSATESTDIR=${DSATESTBINDIR}/..
 KERNELCONFIGDIR=${DSATESTDIR}/kernel-configs
 
-for config in ${KERNELCONFIGDIR}/*.config
+for config in ${KERNELCONFIGDIR}/[^e]*.config
 do
     echo ${config}
     cp ${config} ./.config
