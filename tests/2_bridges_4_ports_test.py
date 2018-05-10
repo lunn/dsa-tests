@@ -12,80 +12,32 @@ import traffic
 
 zero_stats = {
     'rx_pkts': 0L,
-    'rx_pps': 0L,
-    'rx_bps': 0L,
     'tx_pkts': 0L,
-    'tx_pps': 0L,
-    'tx_bps': 0L,
-    'rx_drops': 0L,
-    'rx_errors': 0L,
-    'rx_fifo_errors': 0L,
-    'rx_frame_errors': 0L,
     }
 
 tx_10_stats = {
     'rx_pkts': 0L,
-    'rx_pps': 0L,
-    'rx_bps': 0L,
     'tx_pkts': 10L,
-    'tx_pps': 0L,
-    'tx_bps': 0L,
-    'rx_drops': 0L,
-    'rx_errors': 0L,
-    'rx_fifo_errors': 0L,
-    'rx_frame_errors': 0L,
     }
 
 tx_30_stats = {
     'rx_pkts': 0L,
-    'rx_pps': 0L,
-    'rx_bps': 0L,
     'tx_pkts': 30L,
-    'tx_pps': 0L,
-    'tx_bps': 0L,
-    'rx_drops': 0L,
-    'rx_errors': 0L,
-    'rx_fifo_errors': 0L,
-    'rx_frame_errors': 0L,
     }
 
 rx_10_stats = {
     'rx_pkts': 10L,
-    'rx_pps': 0L,
-    'rx_bps': 0L,
     'tx_pkts': 0L,
-    'tx_pps': 0L,
-    'tx_bps': 0L,
-    'rx_drops': 0L,
-    'rx_errors': 0L,
-    'rx_fifo_errors': 0L,
-    'rx_frame_errors': 0L,
     }
 
 rx_20_stats = {
     'rx_pkts': 20L,
-    'rx_pps': 0L,
-    'rx_bps': 0L,
     'tx_pkts': 0L,
-    'tx_pps': 0L,
-    'tx_bps': 0L,
-    'rx_drops': 0L,
-    'rx_errors': 0L,
-    'rx_fifo_errors': 0L,
-    'rx_frame_errors': 0L,
     }
 
 rx_30_stats = {
     'rx_pkts': 30L,
-    'rx_pps': 0L,
-    'rx_bps': 0L,
     'tx_pkts': 0L,
-    'tx_pps': 0L,
-    'tx_bps': 0L,
-    'rx_drops': 0L,
-    'rx_errors': 0L,
-    'rx_fifo_errors': 0L,
-    'rx_frame_errors': 0L,
     }
 
 ethtool_zero = {'rx_packets': (0, 4),

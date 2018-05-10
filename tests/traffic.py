@@ -3,17 +3,18 @@
 # pylint: disable=E1101
 
 import inspect
-import netaddr
 import pprint
 import sys
 import time
 import ipaddress
+import netaddr
 from ostinato.core import ost_pb, DroneProxy
 from ostinato.protocols.mac_pb2 import mac, Mac
 from ostinato.protocols.eth2_pb2 import eth2
 from ostinato.protocols.ip4_pb2 import ip4
 from ostinato.protocols.udp_pb2 import udp
 from ostinato.protocols.igmp_pb2 import igmp
+from ostinato.protocols.sign_pb2 import sign
 
 IGMPv2_REQUEST = 0x16
 
@@ -26,12 +27,12 @@ def dbg_print(args):
     if DEBUG:
         print args
 
-def get_class_from_frame(fr):
+def get_class_from_frame(frame):
     """Return the class a method was called from"""
-    args, _, _, value_dict = inspect.getargvalues(fr)
+    args, _, _, value_dict = inspect.getargvalues(frame)
     # we check the first parameter for the frame function is
     # named 'self'
-    if len(args) and args[0] == 'self':
+    if args and args[0] == 'self':
         # in that case, 'self' will be referenced in value_dict
         instance = value_dict.get('self', None)
         if instance:
@@ -53,6 +54,11 @@ class Traffic(object):
         self.interfaces = self._getInterfaces()
         self.addedInterfaces = []
         self.tx_stats = None
+        self.stream_stats = None
+        self.guids = ost_pb.StreamGuidList()
+        self.port_config = ost_pb.PortConfigList()
+        self.port_config_ports = 0
+        self.guid = 0
 
     def __del__(self):
         """Cleanup the streams"""
@@ -125,12 +131,17 @@ class Traffic(object):
         port_id = self._getInterfaceId(interface_name)
         self.rx_port.port_id.add().id = port_id
         self.tx_port.port_id.add().id = port_id
+        self.guids.port_id_list.port_id.add().id = port_id
+        self.port_config.port.add().port_id.id = port_id
+        self.port_config.port[self.port_config_ports].is_tracking_stream_stats = True
+        self.port_config_ports += 1
 
     def _getInterfaceMacAddress(self, interface):
         """Return the MAC address of an interface"""
         return 0x001020304000 + interface['port_id_id']
 
     def getInterfaceMacAddress(self, interface_name):
+        """Get the MAC address being used on the interface"""
         interface = self._getInterfaceByName(interface_name)
         number = self._getInterfaceMacAddress(interface)
         eui = netaddr.EUI(number)
@@ -216,6 +227,10 @@ class Traffic(object):
 
         proto = stream.protocol.add()
         proto.protocol_id.id = ost_pb.Protocol.kPayloadFieldNumber
+        proto = stream.protocol.add()
+        proto.protocol_id.id = ost_pb.Protocol.kSignFieldNumber
+        proto.Extensions[sign].stream_guid = self.guid
+        self.guid += 1
 
     def addUDPStream(self, src_interface_name, dst_interface_name,
                      num_packets, packets_per_sec):
@@ -361,8 +376,10 @@ class Traffic(object):
 
     def _run(self, test, method):
         """Do the real work"""
+        self.drone.modifyPort(self.port_config)
         self.drone.clearStats(self.tx_port)
         self.drone.clearStats(self.rx_port)
+        self.drone.clearStreamStats(self.guids)
         self.drone.startCapture(self.rx_port)
         self.drone.startTransmit(self.tx_port)
 
@@ -378,8 +395,11 @@ class Traffic(object):
         self.drone.stopTransmit(self.tx_port)
         self.drone.stopCapture(self.rx_port)
         self.tx_stats = self.drone.getStats(self.tx_port)
+        self.stream_stats = self.drone.getStreamStatsDict(self.guids)
         self._saveCaptures(test, method)
         self._cleanupRun()
+
+        dbg_print('stream_stats: {0}'.format(self.stream_stats))
 
     def run(self):
         """Run the streams"""
@@ -392,43 +412,51 @@ class Traffic(object):
     def getStats(self, interface_name):
         """Return the interface statistics"""
         dbg_print('getStats({0})'.format(interface_name))
+        stats = {
+            'rx_pkts': 0,
+            'tx_pkts': 0,
+        }
         port_id = self._getInterfaceId(interface_name)
-        for port_stats in self.tx_stats.port_stats:
-            if port_stats.port_id.id == port_id:
-                stats = {
-                    'rx_pkts': port_stats.rx_pkts,
-                    'rx_pps': port_stats.rx_pps,
-                    'rx_bps': port_stats.rx_bps,
-                    'tx_pkts': port_stats.tx_pkts,
-                    'tx_pps': port_stats.tx_pps,
-                    'tx_bps': port_stats.tx_bps,
-                    'rx_drops': port_stats.rx_drops,
-                    'rx_errors': port_stats.rx_errors,
-                    'rx_fifo_errors': port_stats.rx_fifo_errors,
-                    'rx_frame_errors': port_stats.rx_frame_errors,
-                }
-                return stats
-
+        if not self.stream_stats.port:
+            return stats
+        for port in self.stream_stats.port:
+            dbg_print('port: {0}'.format(port))
+            port_stream_stats = self.stream_stats.port[port]
+            dbg_print('port_stream: {0}'.format(port_stream_stats))
+            for squid in port_stream_stats.sguid:
+                dbg_print('squid: {0}'.format(squid))
+                dbg_print('squid {0}: {1}'.format(
+                    squid, port_stream_stats.sguid[squid]))
+                dbg_print('port_id: {0}'.format(
+                    port_stream_stats.sguid[squid].port_id.id))
+                if port_stream_stats.sguid[squid].port_id.id == port_id:
+                    stats = {
+                        'rx_pkts': port_stream_stats.total.rx_pkts,
+                        'tx_pkts': port_stream_stats.total.tx_pkts,
+                    }
+                    return stats
+        dbg_print('Not stats for interface {0}'.format(interface_name))
+        return stats
 
 if __name__ == '__main__':
     try:
-        traffic = Traffic()
-        print traffic.getInterfaceNames()
-        traffic.addInterface('eth10')
-        traffic.addInterface('eth11')
-        traffic.addInterface('eth12')
-        traffic.addInterface('eth13')
-        traffic.addInterface('eth14')
-        traffic.addInterface('eth15')
-        traffic.addInterface('eth16')
-        traffic.addInterface('eth17')
-        traffic.learning()
-        print traffic.getStats('eth10')
-        print traffic.getStats('eth11')
-        traffic.addUDPStream('eth10', 'eth11', 100, 10)
-        traffic.addUDPStream('eth11', 'eth10', 50, 5)
-        traffic.run()
-        print 'Statistics for eth10: {0}'.format(traffic.getStats('eth10'))
-        print 'Statistics for eth11: {0}'.format(traffic.getStats('eth11'))
-    except KeyboardInterrupt, e:
+        TRAFFIC = Traffic()
+        print TRAFFIC.getInterfaceNames()
+        TRAFFIC.addInterface('eth10')
+        TRAFFIC.addInterface('eth11')
+        TRAFFIC.addInterface('eth12')
+        TRAFFIC.addInterface('eth13')
+        TRAFFIC.addInterface('eth14')
+        TRAFFIC.addInterface('eth15')
+        TRAFFIC.addInterface('eth16')
+        TRAFFIC.addInterface('eth17')
+        TRAFFIC.learning()
+        print TRAFFIC.getStats('eth10')
+        print TRAFFIC.getStats('eth11')
+        TRAFFIC.addUDPStream('eth10', 'eth11', 100, 10)
+        TRAFFIC.addUDPStream('eth11', 'eth10', 50, 5)
+        TRAFFIC.run()
+        print 'Statistics for eth10: {0}'.format(TRAFFIC.getStats('eth10'))
+        print 'Statistics for eth11: {0}'.format(TRAFFIC.getStats('eth11'))
+    except KeyboardInterrupt:
         sys.exit(1)
