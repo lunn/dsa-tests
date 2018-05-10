@@ -23,7 +23,6 @@
 
       - '{number}_{target}_{test_name}_test':
           downstream: '{job_prefix}030_{target}_{config_prefix}_dsa-802.1d.config_compile_linux'
-          downstream: '{job_prefix}024_{target}_macs_4_ports_test'
           number: '{job_prefix}023'
           test_name: 'ping_individual'
 
