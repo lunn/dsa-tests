@@ -278,6 +278,119 @@ class two_bridges_4_ports_test(unittest2.TestCase):
         self.assertEqual(stats_lan2, rx_10_stats)
         self.assertEqual(stats_lan3, tx_10_stats)
 
+    def test_11_bridged_unicast_lan0_ipv6(self):
+        """Send traffic between bridged ports, and ensure they come out the
+           expected ports. lan0 is the source"""
+        ethtool_stats_lan0 = self.sut.getEthtoolStats(self.config.SUT_LAN0)
+        ethtool_stats_lan1 = self.sut.getEthtoolStats(self.config.SUT_LAN1)
+        ethtool_stats_lan2 = self.sut.getEthtoolStats(self.config.SUT_LAN2)
+        ethtool_stats_lan3 = self.sut.getEthtoolStats(self.config.SUT_LAN3)
+
+        self.traffic.addUDPv6Stream(self.config.HOST_LAN0,
+                                    self.config.HOST_LAN1, 10, 10)
+        self.traffic.addUDPv6Stream(self.config.HOST_LAN0,
+                                    self.config.HOST_LAN2, 10, 10)
+        self.traffic.addUDPv6Stream(self.config.HOST_LAN0,
+                                    self.config.HOST_LAN3, 10, 10)
+        self.traffic.run()
+
+        stats_lan0 = self.traffic.getStats(self.config.HOST_LAN0)
+        stats_lan1 = self.traffic.getStats(self.config.HOST_LAN1)
+        stats_lan2 = self.traffic.getStats(self.config.HOST_LAN2)
+        stats_lan3 = self.traffic.getStats(self.config.HOST_LAN3)
+
+        self.assertEqual(stats_lan0, tx_30_stats)
+        # Not obviouus: The destination MAC for LAN2 and LAN3 are not
+        # known, so the packets are flooded out LAN 1 as
+        # well. However, it depends on the kernel configuration. With
+        # just 802.1d, the ATU/FID is shared, so it knows the MAC
+        # address is on a different port and so drops the packet. With
+        # 802.1d an 802.1q, they are separated, and so it floods.  So
+        # allow either to be a pass result.
+        self.assertTrue(stats_lan1 == rx_10_stats or
+                        stats_lan1 == rx_20_stats or
+                        stats_lan1 == rx_30_stats, stats_lan1)
+        self.assertEqual(stats_lan2, zero_stats)
+        self.assertEqual(stats_lan3, zero_stats)
+
+        self.sut.checkEthtoolStatsRange(self.config.SUT_LAN0,
+                                        ethtool_stats_lan0,
+                                        ethtool_rx_30, self)
+        self.sut.checkEthtoolStatsRange(self.config.SUT_LAN2,
+                                        ethtool_stats_lan2,
+                                        ethtool_zero, self)
+        self.sut.checkEthtoolStatsRange(self.config.SUT_LAN3,
+                                        ethtool_stats_lan3,
+                                        ethtool_zero, self)
+
+    def test_12_bridged_unicast_lan1_ipv6(self):
+        """Send traffic between bridged ports, and ensure they come out the
+           expected ports. lan1 is the source"""
+        self.traffic.addUDPv6Stream(self.config.HOST_LAN1,
+                                    self.config.HOST_LAN0, 10, 10)
+        self.traffic.addUDPv6Stream(self.config.HOST_LAN1,
+                                    self.config.HOST_LAN2, 10, 10)
+        self.traffic.addUDPv6Stream(self.config.HOST_LAN1,
+                                    self.config.HOST_LAN3, 10, 10)
+        self.traffic.run()
+
+        stats_lan0 = self.traffic.getStats(self.config.HOST_LAN0)
+        stats_lan1 = self.traffic.getStats(self.config.HOST_LAN1)
+        stats_lan2 = self.traffic.getStats(self.config.HOST_LAN2)
+        stats_lan3 = self.traffic.getStats(self.config.HOST_LAN3)
+
+        self.assertTrue(stats_lan0 == rx_10_stats or
+                        stats_lan0 == rx_20_stats or
+                        stats_lan0 == rx_30_stats, stats_lan0)
+        self.assertEqual(stats_lan1, tx_30_stats)
+        self.assertEqual(stats_lan2, zero_stats)
+        self.assertEqual(stats_lan3, zero_stats)
+
+    def test_13_bridged_unicast_lan2_ipv6(self):
+        """Send traffic between bridged ports, and ensure they come out the
+           expected ports. lan2 is the source"""
+        self.traffic.addUDPv6Stream(self.config.HOST_LAN2,
+                                    self.config.HOST_LAN0, 10, 10)
+        self.traffic.addUDPv6Stream(self.config.HOST_LAN2,
+                                    self.config.HOST_LAN1, 10, 10)
+        self.traffic.addUDPv6Stream(self.config.HOST_LAN2,
+                                    self.config.HOST_LAN3, 10, 10)
+        self.traffic.run()
+
+        stats_lan0 = self.traffic.getStats(self.config.HOST_LAN0)
+        stats_lan1 = self.traffic.getStats(self.config.HOST_LAN1)
+        stats_lan2 = self.traffic.getStats(self.config.HOST_LAN2)
+        stats_lan3 = self.traffic.getStats(self.config.HOST_LAN3)
+
+        self.assertEqual(stats_lan0, zero_stats)
+        self.assertEqual(stats_lan1, zero_stats)
+        self.assertEqual(stats_lan2, tx_30_stats)
+        self.assertTrue(stats_lan3 == rx_10_stats or
+                        stats_lan3 == rx_30_stats, stats_lan3)
+
+
+    def test_14_bridged_unicast_lan3_ipv6(self):
+        """Send traffic between bridged ports, and ensure they come out the
+           expected ports. lan3 is the source"""
+        self.traffic.addUDPv6Stream(self.config.HOST_LAN3,
+                                    self.config.HOST_LAN0, 10, 10)
+        self.traffic.addUDPv6Stream(self.config.HOST_LAN3,
+                                    self.config.HOST_LAN1, 10, 10)
+        self.traffic.addUDPv6Stream(self.config.HOST_LAN3,
+                                    self.config.HOST_LAN2, 10, 10)
+        self.traffic.run()
+
+        stats_lan0 = self.traffic.getStats(self.config.HOST_LAN0)
+        stats_lan1 = self.traffic.getStats(self.config.HOST_LAN1)
+        stats_lan2 = self.traffic.getStats(self.config.HOST_LAN2)
+        stats_lan3 = self.traffic.getStats(self.config.HOST_LAN3)
+
+        self.assertEqual(stats_lan0, zero_stats)
+        self.assertEqual(stats_lan1, zero_stats)
+        self.assertTrue(stats_lan2 == rx_10_stats or
+                        stats_lan2 == rx_30_stats, stats_lan2)
+        self.assertEqual(stats_lan3, tx_30_stats)
+
     def test_99_delete_bridge(self):
         """Destroy the bridge"""
         self.sut.deleteBridgeInterface('br1', self.config.SUT_LAN0)

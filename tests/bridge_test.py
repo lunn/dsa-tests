@@ -52,6 +52,11 @@ ETHTOOL_RX_0_BROADCAST_50 = {'in_broadcasts': (50, 60),
 ETHTOOL_RX_50_BROADCAST_50 = {'in_broadcasts': (50, 60),
                               'out_unicast': (0, 10)}
 
+ETHTOOL_RX_50 = {'in_broadcasts': (0, 10),
+                 'in_unicast': (50, 60),
+                 'out_broadcasts': (0, 10),
+                 'out_unicast': (0, 10)}
+
 ETHTOOL_TX_100 = {'in_unicast': (0, 10),
                   'out_unicast': (100, 110)}
 
@@ -582,7 +587,335 @@ class Bridge_test(unittest2.TestCase):
             self.assertEqual(stats_lan6, ZERO_STATS)
             self.assertEqual(stats_optical3, ZERO_STATS)
 
-    def test_14_bridged_broadcast_lan6(self):
+    def test_14_not_bridged_ipv6(self):
+        """lan0, lan5, and optical3 are not a member of a bridge. Send
+           traffic on these ports, and make sure there is no traffic
+           sent out other ports"""
+
+        ethtool_stats_lan0 = self.sut.getEthtoolStats(self.config.SUT_LAN0)
+        ethtool_stats_lan1 = self.sut.getEthtoolStats(self.config.SUT_LAN1)
+        ethtool_stats_lan2 = self.sut.getEthtoolStats(self.config.SUT_LAN2)
+        ethtool_stats_lan3 = self.sut.getEthtoolStats(self.config.SUT_LAN3)
+        ethtool_stats_lan4 = self.sut.getEthtoolStats(self.config.SUT_LAN4)
+        ethtool_stats_lan5 = self.sut.getEthtoolStats(self.config.SUT_LAN5)
+        ethtool_stats_lan6 = self.sut.getEthtoolStats(self.config.SUT_LAN6)
+        ethtool_stats_optical3 = self.sut.getEthtoolStats(
+            self.config.SUT_OPTICAL3)
+
+        self.traffic.addUDPv6Stream(self.config.HOST_LAN5,
+                                    self.config.HOST_LAN0, 50, 50)
+        self.traffic.addUDPv6Stream(self.config.HOST_OPTICAL3,
+                                    self.config.HOST_LAN0, 50, 50)
+        self.traffic.run()
+
+        stats_lan0 = self.traffic.getStats(self.config.HOST_LAN0)
+        stats_lan1 = self.traffic.getStats(self.config.HOST_LAN1)
+        stats_lan2 = self.traffic.getStats(self.config.HOST_LAN2)
+        stats_lan3 = self.traffic.getStats(self.config.HOST_LAN3)
+        stats_lan4 = self.traffic.getStats(self.config.HOST_LAN4)
+        stats_lan5 = self.traffic.getStats(self.config.HOST_LAN5)
+        stats_lan6 = self.traffic.getStats(self.config.HOST_LAN6)
+        stats_optical3 = self.traffic.getStats(self.config.HOST_OPTICAL3)
+
+        self.assertEqual(stats_lan0, ZERO_STATS)
+        self.assertEqual(stats_lan1, ZERO_STATS)
+        self.assertEqual(stats_lan2, ZERO_STATS)
+        self.assertEqual(stats_lan3, ZERO_STATS)
+        self.assertEqual(stats_lan4, ZERO_STATS)
+        self.assertEqual(stats_lan5, TX_50_STATS)
+        if 'zii-devel-b' not in self.hostname:
+            # The third switch does not have the hardware needed to properly
+            # support cross chip bridges. Packets leak.
+            self.assertEqual(stats_lan6, ZERO_STATS)
+            self.assertEqual(stats_optical3, TX_50_STATS)
+
+        self.sut.checkEthtoolStatsRange(self.config.SUT_LAN0,
+                                        ethtool_stats_lan0,
+                                        ETHTOOL_ZERO, self)
+        self.sut.checkEthtoolStatsRange(self.config.SUT_LAN1,
+                                        ethtool_stats_lan1,
+                                        ETHTOOL_ZERO, self)
+        self.sut.checkEthtoolStatsRange(self.config.SUT_LAN2,
+                                        ethtool_stats_lan2,
+                                        ETHTOOL_ZERO, self)
+        self.sut.checkEthtoolStatsRange(self.config.SUT_LAN3,
+                                        ethtool_stats_lan3,
+                                        ETHTOOL_ZERO, self)
+        self.sut.checkEthtoolStatsRange(self.config.SUT_LAN4,
+                                        ethtool_stats_lan4,
+                                        ETHTOOL_ZERO, self)
+        self.sut.checkEthtoolStatsRange(self.config.SUT_LAN5,
+                                        ethtool_stats_lan5,
+                                        ETHTOOL_RX_50, self)
+        if 'zii-devel-b' not in self.hostname:
+            # The third switch does not have the hardware needed to properly
+            # support cross chip bridges. Packets leak.
+            self.sut.checkEthtoolStatsRange(self.config.SUT_LAN6,
+                                            ethtool_stats_lan6,
+                                            ETHTOOL_ZERO, self)
+            self.sut.checkEthtoolStatsRange(self.config.SUT_OPTICAL3,
+                                            ethtool_stats_optical3,
+                                            ETHTOOL_RX_50, self)
+
+    def test_15_bridged_unicast_lan1_ipv6(self):
+        """Send traffic between bridged ports, and ensure they come out the
+           expected ports. lan1 is the source"""
+
+        class_stats_master = self.sut.getClassStats(self.config.SUT_MASTER)
+        ethtool_stats_lan0 = self.sut.getEthtoolStats(self.config.SUT_LAN0)
+        ethtool_stats_lan1 = self.sut.getEthtoolStats(self.config.SUT_LAN1)
+        ethtool_stats_lan2 = self.sut.getEthtoolStats(self.config.SUT_LAN2)
+        ethtool_stats_lan3 = self.sut.getEthtoolStats(self.config.SUT_LAN3)
+        ethtool_stats_lan4 = self.sut.getEthtoolStats(self.config.SUT_LAN4)
+        ethtool_stats_lan5 = self.sut.getEthtoolStats(self.config.SUT_LAN5)
+        ethtool_stats_lan6 = self.sut.getEthtoolStats(self.config.SUT_LAN6)
+        ethtool_stats_optical3 = self.sut.getEthtoolStats(
+            self.config.SUT_OPTICAL3)
+
+        self.traffic.addUDPv6Stream(self.config.HOST_LAN1,
+                                    self.config.HOST_LAN2, 100, 100)
+        self.traffic.addUDPv6Stream(self.config.HOST_LAN1,
+                                    self.config.HOST_LAN3, 100, 100)
+        self.traffic.addUDPv6Stream(self.config.HOST_LAN1,
+                                    self.config.HOST_LAN4, 100, 100)
+        self.traffic.addUDPv6Stream(self.config.HOST_LAN1,
+                                    self.config.HOST_LAN6, 100, 100)
+        self.traffic.run()
+
+        stats_lan0 = self.traffic.getStats(self.config.HOST_LAN0)
+        stats_lan1 = self.traffic.getStats(self.config.HOST_LAN1)
+        stats_lan2 = self.traffic.getStats(self.config.HOST_LAN2)
+        stats_lan3 = self.traffic.getStats(self.config.HOST_LAN3)
+        stats_lan4 = self.traffic.getStats(self.config.HOST_LAN4)
+        stats_lan5 = self.traffic.getStats(self.config.HOST_LAN5)
+        stats_lan6 = self.traffic.getStats(self.config.HOST_LAN6)
+        stats_optical3 = self.traffic.getStats(self.config.HOST_OPTICAL3)
+
+        self.assertEqual(stats_lan0, ZERO_STATS)
+        self.assertEqual(stats_lan1, TX_400_STATS)
+
+        self.assertEqual(stats_lan2, RX_100_STATS)
+        self.assertEqual(stats_lan3, RX_100_STATS)
+        self.assertEqual(stats_lan4, RX_100_STATS)
+        self.assertEqual(stats_lan5, ZERO_STATS)
+        self.assertEqual(stats_lan6, RX_100_STATS)
+        self.assertEqual(stats_optical3, ZERO_STATS)
+
+        # All frames should be hardware bridge
+        self.sut.checkClassStatsRange(self.config.SUT_MASTER,
+                                      class_stats_master,
+                                      CLASS_TX_RX_0, self)
+        self.sut.checkEthtoolStatsRange(self.config.SUT_LAN0,
+                                        ethtool_stats_lan0,
+                                        ETHTOOL_ZERO, self)
+        self.sut.checkEthtoolStatsRange(self.config.SUT_LAN1,
+                                        ethtool_stats_lan1,
+                                        ETHTOOL_RX_400, self)
+        self.sut.checkEthtoolStatsRange(self.config.SUT_LAN2,
+                                        ethtool_stats_lan2,
+                                        ETHTOOL_TX_100, self)
+        self.sut.checkEthtoolStatsRange(self.config.SUT_LAN3,
+                                        ethtool_stats_lan3,
+                                        ETHTOOL_TX_100, self)
+        self.sut.checkEthtoolStatsRange(self.config.SUT_LAN4,
+                                        ethtool_stats_lan4,
+                                        ETHTOOL_TX_100, self)
+        self.sut.checkEthtoolStatsRange(self.config.SUT_LAN5,
+                                        ethtool_stats_lan5,
+                                        ETHTOOL_ZERO, self)
+        self.sut.checkEthtoolStatsRange(self.config.SUT_LAN6,
+                                        ethtool_stats_lan6,
+                                        ETHTOOL_TX_100, self)
+        self.sut.checkEthtoolStatsRange(self.config.SUT_OPTICAL3,
+                                        ethtool_stats_optical3,
+                                        ETHTOOL_ZERO, self)
+
+    def test_16_bridged_unicast_lan2_ipv6(self):
+        """Send traffic between bridged ports, and ensure they come out the
+           expected ports. lan2 is the source"""
+
+        class_stats_master = self.sut.getClassStats(self.config.SUT_MASTER)
+
+        self.traffic.addUDPv6Stream(self.config.HOST_LAN2,
+                                    self.config.HOST_LAN1, 100, 100)
+        self.traffic.addUDPv6Stream(self.config.HOST_LAN2,
+                                    self.config.HOST_LAN3, 100, 100)
+        self.traffic.addUDPv6Stream(self.config.HOST_LAN2,
+                                    self.config.HOST_LAN4, 100, 100)
+        self.traffic.addUDPv6Stream(self.config.HOST_LAN2,
+                                    self.config.HOST_LAN6, 100, 100)
+        self.traffic.run()
+
+        stats_lan0 = self.traffic.getStats(self.config.HOST_LAN0)
+        stats_lan1 = self.traffic.getStats(self.config.HOST_LAN1)
+        stats_lan2 = self.traffic.getStats(self.config.HOST_LAN2)
+        stats_lan3 = self.traffic.getStats(self.config.HOST_LAN3)
+        stats_lan4 = self.traffic.getStats(self.config.HOST_LAN4)
+        stats_lan5 = self.traffic.getStats(self.config.HOST_LAN5)
+        stats_lan6 = self.traffic.getStats(self.config.HOST_LAN6)
+        stats_optical3 = self.traffic.getStats(self.config.HOST_OPTICAL3)
+
+        self.assertEqual(stats_lan0, ZERO_STATS)
+        self.assertEqual(stats_lan1, RX_100_STATS)
+        self.assertEqual(stats_lan2, TX_400_STATS)
+        self.assertEqual(stats_lan3, RX_100_STATS)
+        self.assertEqual(stats_lan4, RX_100_STATS)
+        self.assertEqual(stats_lan5, ZERO_STATS)
+        self.assertEqual(stats_lan6, RX_100_STATS)
+        self.assertEqual(stats_optical3, ZERO_STATS)
+
+        # All frames should be hardware bridge
+        self.sut.checkClassStatsRange(self.config.SUT_MASTER,
+                                      class_stats_master,
+                                      CLASS_TX_RX_0, self)
+
+    def test_17_bridged_unicast_lan3_ipv6(self):
+        """Send traffic between bridged ports, and ensure they come out the
+           expected ports. lan3 is the source"""
+
+        class_stats_master = self.sut.getClassStats(self.config.SUT_MASTER)
+
+        self.traffic.addUDPv6Stream(self.config.HOST_LAN3,
+                                    self.config.HOST_LAN1, 100, 100)
+        self.traffic.addUDPv6Stream(self.config.HOST_LAN3,
+                                    self.config.HOST_LAN2, 100, 100)
+        self.traffic.addUDPv6Stream(self.config.HOST_LAN3,
+                                    self.config.HOST_LAN4, 100, 100)
+        self.traffic.addUDPv6Stream(self.config.HOST_LAN3,
+                                    self.config.HOST_LAN6, 100, 100)
+        self.traffic.run()
+
+        stats_lan0 = self.traffic.getStats(self.config.HOST_LAN0)
+        stats_lan1 = self.traffic.getStats(self.config.HOST_LAN1)
+        stats_lan2 = self.traffic.getStats(self.config.HOST_LAN2)
+        stats_lan3 = self.traffic.getStats(self.config.HOST_LAN3)
+        stats_lan4 = self.traffic.getStats(self.config.HOST_LAN4)
+        stats_lan5 = self.traffic.getStats(self.config.HOST_LAN5)
+        stats_lan6 = self.traffic.getStats(self.config.HOST_LAN6)
+        stats_optical3 = self.traffic.getStats(self.config.HOST_OPTICAL3)
+
+        self.assertEqual(stats_lan0, ZERO_STATS)
+        self.assertEqual(stats_lan1, RX_100_STATS)
+        self.assertEqual(stats_lan2, RX_100_STATS)
+        self.assertEqual(stats_lan3, TX_400_STATS)
+        self.assertEqual(stats_lan4, RX_100_STATS)
+        self.assertEqual(stats_lan5, ZERO_STATS)
+        self.assertEqual(stats_lan6, RX_100_STATS)
+        self.assertEqual(stats_optical3, ZERO_STATS)
+
+        # All frames should be hardware bridge
+        self.sut.checkClassStatsRange(self.config.SUT_MASTER,
+                                      class_stats_master,
+                                      CLASS_TX_RX_0, self)
+
+    def test_18_bridged_unicast_lan4_ipv6(self):
+        """Send traffic between bridged ports, and ensure they come out the
+           expected ports. lan4 is the source"""
+
+        class_stats_master = self.sut.getClassStats(self.config.SUT_MASTER)
+
+        self.traffic.addUDPv6Stream(self.config.HOST_LAN4,
+                                    self.config.HOST_LAN1, 100, 100)
+        self.traffic.addUDPv6Stream(self.config.HOST_LAN4,
+                                    self.config.HOST_LAN2, 100, 100)
+        self.traffic.addUDPv6Stream(self.config.HOST_LAN4,
+                                    self.config.HOST_LAN3, 100, 100)
+        self.traffic.addUDPv6Stream(self.config.HOST_LAN4,
+                                    self.config.HOST_LAN6, 100, 100)
+        self.traffic.run()
+
+        stats_lan0 = self.traffic.getStats(self.config.HOST_LAN0)
+        stats_lan1 = self.traffic.getStats(self.config.HOST_LAN1)
+        stats_lan2 = self.traffic.getStats(self.config.HOST_LAN2)
+        stats_lan3 = self.traffic.getStats(self.config.HOST_LAN3)
+        stats_lan4 = self.traffic.getStats(self.config.HOST_LAN4)
+        stats_lan5 = self.traffic.getStats(self.config.HOST_LAN5)
+        stats_lan6 = self.traffic.getStats(self.config.HOST_LAN6)
+        stats_optical3 = self.traffic.getStats(self.config.HOST_OPTICAL3)
+
+        self.assertEqual(stats_lan0, ZERO_STATS)
+        self.assertEqual(stats_lan1, RX_100_STATS)
+        self.assertEqual(stats_lan2, RX_100_STATS)
+        self.assertEqual(stats_lan3, RX_100_STATS)
+        self.assertEqual(stats_lan4, TX_400_STATS)
+        self.assertEqual(stats_lan5, ZERO_STATS)
+        self.assertEqual(stats_lan6, RX_100_STATS)
+        self.assertEqual(stats_optical3, ZERO_STATS)
+
+        # All frames should be hardware bridge
+        self.sut.checkClassStatsRange(self.config.SUT_MASTER,
+                                      class_stats_master,
+                                      CLASS_TX_RX_0, self)
+
+    def test_19_bridged_unicast_lan6_ipv6(self):
+        """Send traffic between bridged ports, and ensure they come out the
+           expected ports. lan6 is the source"""
+
+        self.traffic.addUDPv6Stream(self.config.HOST_LAN6,
+                                    self.config.HOST_LAN1, 100, 100)
+        self.traffic.addUDPv6Stream(self.config.HOST_LAN6,
+                                    self.config.HOST_LAN2, 100, 100)
+        self.traffic.addUDPv6Stream(self.config.HOST_LAN6,
+                                    self.config.HOST_LAN3, 100, 100)
+        self.traffic.addUDPv6Stream(self.config.HOST_LAN6,
+                                    self.config.HOST_LAN4, 100, 100)
+        self.traffic.run()
+
+        stats_lan0 = self.traffic.getStats(self.config.HOST_LAN0)
+        stats_lan1 = self.traffic.getStats(self.config.HOST_LAN1)
+        stats_lan2 = self.traffic.getStats(self.config.HOST_LAN2)
+        stats_lan3 = self.traffic.getStats(self.config.HOST_LAN3)
+        stats_lan4 = self.traffic.getStats(self.config.HOST_LAN4)
+        stats_lan5 = self.traffic.getStats(self.config.HOST_LAN5)
+        stats_lan6 = self.traffic.getStats(self.config.HOST_LAN6)
+        stats_optical3 = self.traffic.getStats(self.config.HOST_OPTICAL3)
+
+        self.assertEqual(stats_lan0, ZERO_STATS)
+        self.assertEqual(stats_lan1, RX_100_STATS)
+        self.assertEqual(stats_lan2, RX_100_STATS)
+        self.assertEqual(stats_lan3, RX_100_STATS)
+        self.assertEqual(stats_lan4, RX_100_STATS)
+        self.assertEqual(stats_lan5, ZERO_STATS)
+        self.assertEqual(stats_lan6, TX_400_STATS)
+        self.assertEqual(stats_optical3, ZERO_STATS)
+
+    def test_20_bridged_unicast_optical3_ipv6(self):
+        """Add optical3 to the bridge, and test hardware bridging between
+           ports on switch 2."""
+
+        self.sut.addBridgeInterface('br1', self.config.SUT_OPTICAL3)
+
+        self.traffic.addUDPv6Stream(self.config.HOST_OPTICAL3,
+                                    self.config.HOST_LAN1, 100, 100)
+        self.traffic.addUDPv6Stream(self.config.HOST_OPTICAL3,
+                                    self.config.HOST_LAN2, 100, 100)
+        self.traffic.addUDPv6Stream(self.config.HOST_OPTICAL3,
+                                    self.config.HOST_LAN3, 100, 100)
+        self.traffic.addUDPv6Stream(self.config.HOST_OPTICAL3,
+                                    self.config.HOST_LAN6, 100, 100)
+        self.traffic.run()
+
+        stats_lan0 = self.traffic.getStats(self.config.HOST_LAN0)
+        stats_lan1 = self.traffic.getStats(self.config.HOST_LAN1)
+        stats_lan2 = self.traffic.getStats(self.config.HOST_LAN2)
+        stats_lan3 = self.traffic.getStats(self.config.HOST_LAN3)
+        stats_lan4 = self.traffic.getStats(self.config.HOST_LAN4)
+        stats_lan5 = self.traffic.getStats(self.config.HOST_LAN5)
+        stats_lan6 = self.traffic.getStats(self.config.HOST_LAN6)
+        stats_optical3 = self.traffic.getStats(self.config.HOST_OPTICAL3)
+
+        self.assertEqual(stats_lan0, ZERO_STATS)
+        self.assertEqual(stats_lan1, RX_100_STATS)
+        self.assertEqual(stats_lan2, RX_100_STATS)
+        self.assertEqual(stats_lan3, RX_100_STATS)
+        self.assertEqual(stats_lan4, ZERO_STATS)
+        self.assertEqual(stats_lan5, ZERO_STATS)
+        self.assertEqual(stats_lan6, RX_100_STATS)
+        self.assertEqual(stats_optical3, TX_400_STATS)
+
+        self.sut.deleteBridgeInterface('br1', self.config.SUT_OPTICAL3)
+
+    def test_21_bridged_broadcast_lan6_ipv6(self):
         """Send traffic between bridged ports, and ensure they come out the
            expected ports. lan6 is the source of broadcast packets"""
         self.traffic.addUDPBroadcastStream(self.config.HOST_LAN6, 100, 100)

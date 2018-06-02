@@ -12,6 +12,7 @@ from ostinato.core import ost_pb, DroneProxy
 from ostinato.protocols.mac_pb2 import mac, Mac
 from ostinato.protocols.eth2_pb2 import eth2
 from ostinato.protocols.ip4_pb2 import ip4
+from ostinato.protocols.ip6_pb2 import ip6
 from ostinato.protocols.udp_pb2 import udp
 from ostinato.protocols.igmp_pb2 import igmp
 from ostinato.protocols.sign_pb2 import sign
@@ -27,6 +28,7 @@ def dbg_print(args):
     if DEBUG:
         print args
 
+
 def get_class_from_frame(frame):
     """Return the class a method was called from"""
     args, _, _, value_dict = inspect.getargvalues(frame)
@@ -40,6 +42,7 @@ def get_class_from_frame(frame):
             return getattr(instance, '__class__', None)
         # return None otherwise
     return None
+
 
 class Traffic(object):
     """Class for traffic streams"""
@@ -78,7 +81,7 @@ class Traffic(object):
                 'name': port.name,
                 'port_id': port.port_id,
                 'port_id_id': port.port_id.id,
-                'stream_id_list_list' : [],
+                'stream_id_list_list': [],
                 'stream_cfg': stream_cfg,
                 'stream_id': 1,
             }
@@ -133,7 +136,8 @@ class Traffic(object):
         self.tx_port.port_id.add().id = port_id
         self.guids.port_id_list.port_id.add().id = port_id
         self.port_config.port.add().port_id.id = port_id
-        self.port_config.port[self.port_config_ports].is_tracking_stream_stats = True
+        self.port_config.port[self.port_config_ports] \
+                        .is_tracking_stream_stats = True
         self.port_config_ports += 1
 
     def _getInterfaceMacAddress(self, interface):
@@ -148,9 +152,15 @@ class Traffic(object):
         eui.dialect = netaddr.mac_unix_expanded
         return str(eui)
 
-    def _getInterfaceIPAddress(self, interface):
-        """Return the IP address of an interface"""
+    def _getInterfaceIPv4Address(self, interface):
+        """Return the IPv4 address of an interface"""
         return 0xc0a83a0a + interface['port_id_id']
+
+    def _getInterfaceIPv6Address(self, interface):
+        """Return the IPv6 address of an interface"""
+        ipv6 = {'hi': 0xfd42424200000000,
+                'lo': 0x10 + interface['port_id_id']}
+        return ipv6
 
     def _addEthernetHeader(self, stream, src_mac, dst_mac, src_mac_count=0,
                            src_mac_step=1):
@@ -164,19 +174,35 @@ class Traffic(object):
             proto.Extensions[mac].src_mac_count = src_mac_count
             proto.Extensions[mac].src_mac_step = src_mac_step
 
-    def _addEthertypeIP(self, stream):
-        """Add an Ethernet Type header for IP to a stream"""
+    def _addEthertypeIPv4(self, stream):
+        """Add an Ethernet Type header for IPv4 to a stream"""
         proto = stream.protocol.add()
         proto.protocol_id.id = ost_pb.Protocol.kEth2FieldNumber
         proto.Extensions[eth2].type = 0x0800
         proto.Extensions[eth2].is_override_type = True
 
-    def _addIPHeader(self, stream, src_ip, dst_ip):
-        """Add an IP header to a stream"""
+    def _addEthertypeIPv6(self, stream):
+        """Add an Ethernet Type header for IPv6 to a stream"""
+        proto = stream.protocol.add()
+        proto.protocol_id.id = ost_pb.Protocol.kEth2FieldNumber
+        proto.Extensions[eth2].type = 0x86dd
+        proto.Extensions[eth2].is_override_type = True
+
+    def _addIPv4Header(self, stream, src_ip, dst_ip):
+        """Add an IPv4 header to a stream"""
         proto = stream.protocol.add()
         proto.protocol_id.id = ost_pb.Protocol.kIp4FieldNumber
         proto.Extensions[ip4].src_ip = src_ip
         proto.Extensions[ip4].dst_ip = dst_ip
+
+    def _addIPv6Header(self, stream, src_ip, dst_ip):
+        """Add an IPv6 header to a stream"""
+        proto = stream.protocol.add()
+        proto.protocol_id.id = ost_pb.Protocol.kIp6FieldNumber
+        proto.Extensions[ip6].src_addr_hi = src_ip['hi']
+        proto.Extensions[ip6].src_addr_lo = src_ip['lo']
+        proto.Extensions[ip6].dst_addr_hi = dst_ip['hi']
+        proto.Extensions[ip6].dst_addr_lo = dst_ip['lo']
 
     def _addUdpHeader(self, stream, src_port, dst_port):
         """Add a UDP header to a stream"""
@@ -214,15 +240,33 @@ class Traffic(object):
         stream.control.packets_per_sec = packets_per_sec
         return stream
 
-    def _addUDPPacketStream(self, stream, src_mac, src_mac_count, src_mac_step,
-                            dst_mac, src_ip, dst_ip):
-        """Add a UDP packets to a stream"""
+    def _addUDPv4PacketStream(self, stream, src_mac, src_mac_count,
+                              src_mac_step, dst_mac, src_ip, dst_ip):
+        """Add a UDPv4 packets to a stream"""
         self._addEthernetHeader(stream, src_mac=src_mac,
                                 dst_mac=dst_mac,
                                 src_mac_count=src_mac_count,
                                 src_mac_step=src_mac_step)
-        self._addEthertypeIP(stream)
-        self._addIPHeader(stream, src_ip=src_ip, dst_ip=dst_ip)
+        self._addEthertypeIPv4(stream)
+        self._addIPv4Header(stream, src_ip=src_ip, dst_ip=dst_ip)
+        self._addUdpHeader(stream, 0x1234, 0x4321)
+
+        proto = stream.protocol.add()
+        proto.protocol_id.id = ost_pb.Protocol.kPayloadFieldNumber
+        proto = stream.protocol.add()
+        proto.protocol_id.id = ost_pb.Protocol.kSignFieldNumber
+        proto.Extensions[sign].stream_guid = self.guid
+        self.guid += 1
+
+    def _addUDPv6PacketStream(self, stream, src_mac, src_mac_count,
+                              src_mac_step, dst_mac, src_ip, dst_ip):
+        """Add a UDPv6 packets to a stream"""
+        self._addEthernetHeader(stream, src_mac=src_mac,
+                                dst_mac=dst_mac,
+                                src_mac_count=src_mac_count,
+                                src_mac_step=src_mac_step)
+        self._addEthertypeIPv6(stream)
+        self._addIPv6Header(stream, src_ip=src_ip, dst_ip=dst_ip)
         self._addUdpHeader(stream, 0x1234, 0x4321)
 
         proto = stream.protocol.add()
@@ -234,7 +278,7 @@ class Traffic(object):
 
     def addUDPStream(self, src_interface_name, dst_interface_name,
                      num_packets, packets_per_sec):
-        """Add a UDP stream from the source interface to the destination
+        """Add a UDPv4 stream from the source interface to the destination
            interface"""
         dbg_print('addUDPStream({0} {1} {2} {3})'.format(src_interface_name,
                                                          dst_interface_name,
@@ -247,16 +291,39 @@ class Traffic(object):
                                  packets_per_sec)
         src_mac = self._getInterfaceMacAddress(src_interface)
         dst_mac = self._getInterfaceMacAddress(dst_interface)
-        src_ip = self._getInterfaceIPAddress(src_interface)
-        dst_ip = self._getInterfaceIPAddress(dst_interface)
+        src_ip = self._getInterfaceIPv4Address(src_interface)
+        dst_ip = self._getInterfaceIPv4Address(dst_interface)
 
-        self._addUDPPacketStream(stream, src_mac, 0, 1, dst_mac, src_ip, dst_ip)
+        self._addUDPv4PacketStream(stream, src_mac, 0, 1, dst_mac, src_ip,
+                                   dst_ip)
+        self.drone.modifyStream(stream_cfg)
+
+    def addUDPv6Stream(self, src_interface_name, dst_interface_name,
+                       num_packets, packets_per_sec):
+        """Add a UDPv6 stream from the source interface to the destination
+           interface"""
+        dbg_print('addUDPv6Stream({0} {1} {2} {3})'.format(src_interface_name,
+                                                           dst_interface_name,
+                                                           num_packets,
+                                                           packets_per_sec))
+        src_interface = self._getInterfaceByName(src_interface_name)
+        dst_interface = self._getInterfaceByName(dst_interface_name)
+        stream_cfg = src_interface['stream_cfg']
+        stream = self._addStream(stream_cfg, src_interface, num_packets,
+                                 packets_per_sec)
+        src_mac = self._getInterfaceMacAddress(src_interface)
+        dst_mac = self._getInterfaceMacAddress(dst_interface)
+        src_ip = self._getInterfaceIPv6Address(src_interface)
+        dst_ip = self._getInterfaceIPv6Address(dst_interface)
+
+        self._addUDPv6PacketStream(stream, src_mac, 0, 1, dst_mac,
+                                   src_ip, dst_ip)
         self.drone.modifyStream(stream_cfg)
 
     def addUDPMacIncStream(self, src_interface_name, dst_interface_name,
                            src_mac, num_packets, packets_per_sec,
                            src_mac_count=0, src_mac_step=1):
-        """Add a UDP stream from the source interface to the
+        """Add a UDPv4 stream from the source interface to the
            destination interface, using the given src MAC addresses"""
         dbg_print('addUDPMacIncStream({0} {1} {2} {3} {4} {5} {6})'.
                   format(src_interface_name,
@@ -272,16 +339,16 @@ class Traffic(object):
         stream = self._addStream(stream_cfg, src_interface, num_packets,
                                  packets_per_sec)
         dst_mac = self._getInterfaceMacAddress(dst_interface)
-        src_ip = self._getInterfaceIPAddress(src_interface)
-        dst_ip = self._getInterfaceIPAddress(dst_interface)
+        src_ip = self._getInterfaceIPv4Address(src_interface)
+        dst_ip = self._getInterfaceIPv4Address(dst_interface)
 
-        self._addUDPPacketStream(stream, src_mac, src_mac_count, src_mac_step,
-                                 dst_mac, src_ip, dst_ip)
+        self._addUDPv4PacketStream(stream, src_mac, src_mac_count,
+                                   src_mac_step, dst_mac, src_ip, dst_ip)
         self.drone.modifyStream(stream_cfg)
 
     def addUDPBroadcastStream(self, src_interface_name, num_packets,
                               packets_per_sec):
-        """Add a UDP broadcast stream from the source interface to the
+        """Add a UDPv4 broadcast stream from the source interface to the
            broadcast address"""
         dbg_print('addUDPBroadcastStream({0} {1} {2})'.
                   format(src_interface_name,
@@ -292,15 +359,16 @@ class Traffic(object):
         stream = self._addStream(stream_cfg, src_interface, num_packets,
                                  packets_per_sec)
         src_mac = self._getInterfaceMacAddress(src_interface)
-        src_ip = self._getInterfaceIPAddress(src_interface)
+        src_ip = self._getInterfaceIPv4Address(src_interface)
         dst_mac = 0xffffffffffff
         dst_ip = 0xc0a82aff
-        self._addUDPPacketStream(stream, src_mac, 0, 1, dst_mac, src_ip, dst_ip)
+        self._addUDPv4PacketStream(stream, src_mac, 0, 1, dst_mac,
+                                   src_ip, dst_ip)
         self.drone.modifyStream(stream_cfg)
 
     def addUDPMulticastStream(self, src_interface_name, group_str, num_packets,
                               packets_per_sec):
-        """Add a UDP multicast stream from the source interface to the
+        """Add a UDPv4 multicast stream from the source interface to the
            group address"""
         dbg_print('addUDPMulticastStream({0} {1} {2} {3})'.
                   format(src_interface_name,
@@ -314,10 +382,11 @@ class Traffic(object):
         src_mac = self._getInterfaceMacAddress(src_interface)
         group = ipaddress.ip_address(group_str.decode())
         dst_mac = 0x01005e000000 + (int(group) & 0x07fffff)
-        src_ip = self._getInterfaceIPAddress(src_interface)
+        src_ip = self._getInterfaceIPv4Address(src_interface)
         dst_ip = int(group)
 
-        self._addUDPPacketStream(stream, src_mac, 0, 1, dst_mac, src_ip, dst_ip)
+        self._addUDPv4PacketStream(stream, src_mac, 0, 1, dst_mac,
+                                   src_ip, dst_ip)
         self.drone.modifyStream(stream_cfg)
 
     def addIGMPRequestStream(self, src_interface_name, group, num_packets,
@@ -332,13 +401,13 @@ class Traffic(object):
                                  packets_per_sec)
         src_mac = self._getInterfaceMacAddress(src_interface)
         dst_mac = 0x01005e00001
-        src_ip = self._getInterfaceIPAddress(src_interface)
+        src_ip = self._getInterfaceIPv4Address(src_interface)
         dst_ip = group
 
         self._addEthernetHeader(stream, src_mac=src_mac,
                                 dst_mac=dst_mac)
-        self._addEthertypeIP(stream)
-        self._addIPHeader(stream, src_ip=src_ip, dst_ip=dst_ip)
+        self._addEthertypeIPv4(stream)
+        self._addIPv4Header(stream, src_ip=src_ip, dst_ip=dst_ip)
         self._addIGMPRequestHeader(stream, group)
 
         self.drone.modifyStream(stream_cfg)
@@ -437,6 +506,7 @@ class Traffic(object):
                     return stats
         dbg_print('Not stats for interface {0}'.format(interface_name))
         return stats
+
 
 if __name__ == '__main__':
     try:
