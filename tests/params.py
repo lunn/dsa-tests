@@ -47,6 +47,11 @@ def readConfig(filename, fourPorts=True):
 
     config['hostname'] = parser.get('sut', 'hostname')
     config['key'] = parser.get('sut', 'key')
+    try:
+        config['ptp'] = parser.get('sut', 'ptp')
+    except:
+        config['ptp'] = None
+
     return dotdict(config)
 
 
@@ -57,6 +62,9 @@ def params():
                         required=True)
     parser.add_argument("--config-master", "-m",
                         help="PTP Master Configuration file",
+                        required=False)
+    parser.add_argument("--config-master-interface", "-i",
+                        help="PTP Master interface",
                         required=False)
     parser.add_argument("--verbose", "-v", type=int,
                         help="Run the test with a verbose level",
