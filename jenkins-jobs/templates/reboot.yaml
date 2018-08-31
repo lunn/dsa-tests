@@ -13,6 +13,7 @@
          {reboot_cmd}
          sleep 55
          ping -c 1 -w 60 {hostname}
+         sleep 10
     publishers:
       - trigger:
           project: '{downstream}'
