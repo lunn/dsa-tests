@@ -317,7 +317,6 @@ class macs_4_ports_test(unittest2.TestCase):
         self.traffic.run()
 
         self.assertTrue(self._check_dmesg_contains('ATU member violation'))
-        self.assertTrue(self._check_dmesg_contains('ATU miss violation'))
 
         # Flush the Fdb we have added
         self.sut.flushFdb()
