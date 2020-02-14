@@ -35,29 +35,29 @@ RX_100_STATS = {
     'tx_pkts': 0L,
     }
 
-CLASS_TX_RX_0 = {'tx_packets': (0, 10),
-                 'rx_packets': (0, 10)}
+CLASS_TX_RX_0 = {'tx_packets': (0, 20),
+                 'rx_packets': (0, 20)}
 
-ETHTOOL_ZERO = {'rx_packets': (0, 10),
-                'in_unicast': (0, 10),
-                'tx_packets': (0, 10),
-                'out_unicast': (0, 10)}
+ETHTOOL_ZERO = {'rx_packets': (0, 20),
+                'in_unicast': (0, 20),
+                'tx_packets': (0, 20),
+                'out_unicast': (0, 20)}
 
 ETHTOOL_RX_400 = {'in_unicast': (400, 410),
-                  'out_unicast': (0, 10)}
+                  'out_unicast': (0, 20)}
 
 ETHTOOL_RX_0_BROADCAST_50 = {'in_broadcasts': (50, 60),
-                             'out_unicast': (0, 10)}
+                             'out_unicast': (0, 20)}
 
 ETHTOOL_RX_50_BROADCAST_50 = {'in_broadcasts': (50, 60),
-                              'out_unicast': (0, 10)}
+                              'out_unicast': (0, 20)}
 
-ETHTOOL_RX_50 = {'in_broadcasts': (0, 10),
+ETHTOOL_RX_50 = {'in_broadcasts': (0, 20),
                  'in_unicast': (50, 60),
-                 'out_broadcasts': (0, 10),
-                 'out_unicast': (0, 10)}
+                 'out_broadcasts': (0, 20),
+                 'out_unicast': (0, 20)}
 
-ETHTOOL_TX_100 = {'in_unicast': (0, 10),
+ETHTOOL_TX_100 = {'in_unicast': (0, 20),
                   'out_unicast': (100, 110)}
 
 SUT = None
