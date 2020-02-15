@@ -20,6 +20,8 @@ CONFIG = None
 class ping_bridges_test(unittest2.TestCase):
     '''Class containing the test cases'''
 
+    skip = [ ]
+
     def setUp(self):
         """Setup ready to perform the test"""
         self.sut = SUT
@@ -100,6 +102,7 @@ class ping_bridges_test(unittest2.TestCase):
         # Allow time for the interfaces to come up
         time.sleep(10)
 
+    @unittest2.skipIf(2 in skip, 'Disabled')
     def test_02_ping(self):
         """Ping the SUT. We expect replies for all interfaces"""
         self.assertTrue(self.host.ping('192.168.10.2'))
@@ -120,6 +123,7 @@ class ping_bridges_test(unittest2.TestCase):
         self.assertTrue(self.host.ping('fd42:4242:16::2'))
         self.assertTrue(self.host.ping('fd42:4242:17::2'))
 
+    @unittest2.skipIf(3 in skip, 'Disabled')
     def test_03_lan0_br0(self):
         """Create a bridge and place only lan0 in it. Move lan0
            IP address to the bridge"""
@@ -152,6 +156,7 @@ class ping_bridges_test(unittest2.TestCase):
         self.assertTrue(self.host.ping('fd42:4242:16::2'))
         self.assertTrue(self.host.ping('fd42:4242:17::2'))
 
+    @unittest2.skipIf(4 in skip, 'Disabled')
     def test_04_lan2_br2(self):
         """Create a bridge and place only lan2 in it. Move lan2
            IP address to the bridge"""
@@ -184,6 +189,7 @@ class ping_bridges_test(unittest2.TestCase):
         self.assertTrue(self.host.ping('fd42:4242:16::2'))
         self.assertTrue(self.host.ping('fd42:4242:17::2'))
 
+    @unittest2.skipIf(5 in skip, 'Disabled')
     def test_05_lan4_br4(self):
         """Create a bridge and place only lan4 in it. Move lan4
            IP address to the bridge"""
@@ -216,6 +222,7 @@ class ping_bridges_test(unittest2.TestCase):
         self.assertTrue(self.host.ping('fd42:4242:16::2'))
         self.assertTrue(self.host.ping('fd42:4242:17::2'))
 
+    @unittest2.skipIf(6 in skip, 'Disabled')
     def test_06_lan6_br6(self):
         """Create a bridge and place only lan6 in it. Move lan6
            IP address to the bridge"""
@@ -248,6 +255,7 @@ class ping_bridges_test(unittest2.TestCase):
         self.assertTrue(self.host.ping('fd42:4242:16::2'))
         self.assertTrue(self.host.ping('fd42:4242:17::2'))
 
+    @unittest2.skipIf(7 in skip, 'Disabled')
     def test_07_remove_br0(self):
         """Remove br0 and place the IP address back on lan0"""
         self.sut.down('br0')
@@ -255,6 +263,9 @@ class ping_bridges_test(unittest2.TestCase):
         self.sut.addAddress(self.config.SUT_LAN0, '192.168.10.2/24')
         self.sut.addAddress(self.config.SUT_LAN0, 'fd42:4242:10::2/64')
 
+        self.host.arpDel('192.168.10.2')
+        self.host.ndDel('fd42:4242:10::2', self.config.HOST_LAN0)
+
         self.assertTrue(self.host.ping('192.168.10.2'))
         self.assertTrue(self.host.ping('192.168.11.2'))
         self.assertTrue(self.host.ping('192.168.12.2'))
@@ -273,6 +284,7 @@ class ping_bridges_test(unittest2.TestCase):
         self.assertTrue(self.host.ping('fd42:4242:16::2'))
         self.assertTrue(self.host.ping('fd42:4242:17::2'))
 
+    @unittest2.skipIf(8 in skip, 'Disabled')
     def test_08_remove_br2(self):
         """Remove br2 and place the IP address back on lan2"""
         self.sut.down('br2')
@@ -280,6 +292,9 @@ class ping_bridges_test(unittest2.TestCase):
         self.sut.addAddress(self.config.SUT_LAN2, '192.168.12.2/24')
         self.sut.addAddress(self.config.SUT_LAN2, 'fd42:4242:12::2/64')
 
+        self.host.arpDel('192.168.12.2')
+        self.host.ndDel('fd42:4242:12::2', self.config.HOST_LAN2)
+
         self.assertTrue(self.host.ping('192.168.10.2'))
         self.assertTrue(self.host.ping('192.168.11.2'))
         self.assertTrue(self.host.ping('192.168.12.2'))
@@ -298,6 +313,7 @@ class ping_bridges_test(unittest2.TestCase):
         self.assertTrue(self.host.ping('fd42:4242:16::2'))
         self.assertTrue(self.host.ping('fd42:4242:17::2'))
 
+    @unittest2.skipIf(9 in skip, 'Disabled')
     def test_09_remove_br4(self):
         """Remove br4 and place the IP address back on lan4"""
         self.sut.down('br4')
@@ -305,6 +321,9 @@ class ping_bridges_test(unittest2.TestCase):
         self.sut.addAddress(self.config.SUT_LAN4, '192.168.14.2/24')
         self.sut.addAddress(self.config.SUT_LAN4, 'fd42:4242:14::2/64')
 
+        self.host.arpDel('192.168.14.2')
+        self.host.ndDel('fd42:4242:14::2', self.config.HOST_LAN4)
+
         self.assertTrue(self.host.ping('192.168.10.2'))
         self.assertTrue(self.host.ping('192.168.11.2'))
         self.assertTrue(self.host.ping('192.168.12.2'))
@@ -323,13 +342,17 @@ class ping_bridges_test(unittest2.TestCase):
         self.assertTrue(self.host.ping('fd42:4242:16::2'))
         self.assertTrue(self.host.ping('fd42:4242:17::2'))
 
-    def test_09_remove_br6(self):
+    @unittest2.skipIf(10 in skip, 'Disabled')
+    def test_10_remove_br6(self):
         """Remove br6 and place the IP address back on lan6"""
         self.sut.down('br6')
         self.sut.deleteBridge('br6')
         self.sut.addAddress(self.config.SUT_LAN6, '192.168.16.2/24')
         self.sut.addAddress(self.config.SUT_LAN6, 'fd42:4242:16::2/64')
 
+        self.host.arpDel('192.168.16.2')
+        self.host.ndDel('fd42:4242:16::2', self.config.HOST_LAN6)
+
         self.assertTrue(self.host.ping('192.168.10.2'))
         self.assertTrue(self.host.ping('192.168.11.2'))
         self.assertTrue(self.host.ping('192.168.12.2'))
@@ -348,6 +371,7 @@ class ping_bridges_test(unittest2.TestCase):
         self.assertTrue(self.host.ping('fd42:4242:16::2'))
         self.assertTrue(self.host.ping('fd42:4242:17::2'))
 
+    @unittest2.skipIf(99 in skip, 'Disabled')
     def test_99_ping_down(self):
         """Down the interfaces on the SUT and then ping the SUT.
            We don't expect replies from any interfaces"""

@@ -150,6 +150,15 @@ class HOST(object):
                 return words[2]
         return None
 
+    def arpDel(self, address):
+        """Delete the ARP cache entry for the given IP address"""
+        self._check_call('arp -d {0}'.format(address))
+
+    def ndDel(self, address, interface):
+        """Delete a neighbor discovery cache entry for the given IP address"""
+        self._check_call('ip -6 neigh del {0} dev {1}'.format(address,
+                                                              interface))
+
     def cleanSystem(self):
         """Remove all addresses from the test interfaces, ensure they are
            all up. Remove any multicast memberships"""
