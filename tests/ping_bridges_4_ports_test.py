@@ -191,6 +191,9 @@ class ping_bridges_4_ports_test(unittest2.TestCase):
         self.sut.addAddress(self.config.SUT_LAN0, '192.168.10.2/24')
         self.sut.addAddress(self.config.SUT_LAN0, 'fd42:4242:10::2/64')
 
+        self.host.arpDel('192.168.10.2')
+        self.host.ndDel('fd42:4242:10::2', self.config.HOST_LAN0)
+
         self.assertTrue(self.host.ping('192.168.10.2'))
         self.assertTrue(self.host.ping('192.168.11.2'))
         self.assertTrue(self.host.ping('192.168.12.2'))
@@ -207,6 +210,9 @@ class ping_bridges_4_ports_test(unittest2.TestCase):
         self.sut.deleteBridge('br2')
         self.sut.addAddress(self.config.SUT_LAN2, '192.168.12.2/24')
         self.sut.addAddress(self.config.SUT_LAN2, 'fd42:4242:12::2/64')
+
+        self.host.arpDel('192.168.12.2')
+        self.host.ndDel('fd42:4242:12::2', self.config.HOST_LAN2)
 
         self.assertTrue(self.host.ping('192.168.10.2'))
         self.assertTrue(self.host.ping('192.168.11.2'))
@@ -225,6 +231,9 @@ class ping_bridges_4_ports_test(unittest2.TestCase):
         self.sut.addAddress(self.config.SUT_LAN3, '192.168.13.2/24')
         self.sut.addAddress(self.config.SUT_LAN3, 'fd42:4242:13::2/64')
 
+        self.host.arpDel('192.168.13.2')
+        self.host.ndDel('fd42:4242:13::2', self.config.HOST_LAN3)
+
         self.assertTrue(self.host.ping('192.168.10.2'))
         self.assertTrue(self.host.ping('192.168.11.2'))
         self.assertTrue(self.host.ping('192.168.12.2'))
@@ -241,6 +250,9 @@ class ping_bridges_4_ports_test(unittest2.TestCase):
         self.sut.deleteBridge('br1')
         self.sut.addAddress(self.config.SUT_LAN1, '192.168.11.2/24')
         self.sut.addAddress(self.config.SUT_LAN1, 'fd42:4242:11::2/64')
+
+        self.host.arpDel('192.168.11.2')
+        self.host.ndDel('fd42:4242:11::2', self.config.HOST_LAN1)
 
         self.assertTrue(self.host.ping('192.168.10.2'))
         self.assertTrue(self.host.ping('192.168.11.2'))
