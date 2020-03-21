@@ -17,14 +17,15 @@ TRAFFIC = None
 CONFIG = None
 VLAN_FILTERING = False
 
-ethtool_rx_0_tx_0 = {'in_multicasts': (0, 4),
-                     'out_multicasts': (0, 4)}
+ethtool_rx_0_tx_0 = {'in_multicasts': (0, 20),
+                     'out_multicasts': (0, 20)}
 
-ethtool_rx_5_tx_0 = {'in_multicasts': (5, 9),
-                     'out_multicasts': (0, 4)}
+ethtool_rx_500_tx_0 = {'in_multicasts': (500, 520),
+                       'out_multicasts': (0, 20)}
 
-ethtool_rx_0_tx_5 = {'in_multicasts': (0, 4),
-                     'out_multicasts': (5, 9)}
+ethtool_rx_0_tx_500 = {'in_multicasts': (0, 20),
+                       'out_multicasts': (500, 520)}
+
 
 class igmp_test(unittest2.TestCase):
     '''Class containing the test cases'''
@@ -170,12 +171,12 @@ class igmp_test(unittest2.TestCase):
             self.config.SUT_OPTICAL3)
 
         self.traffic.addUDPMulticastStream(self.config.HOST_LAN0,
-                                           '224.42.42.42', 5, 5)
+                                           '224.42.42.42', 500, 500)
         self.traffic.run()
 
         self.sut.checkEthtoolStatsRange(self.config.SUT_LAN0,
                                         ethtool_stats_lan0,
-                                        ethtool_rx_5_tx_0, self)
+                                        ethtool_rx_500_tx_0, self)
 
         self.sut.checkEthtoolStatsRange(self.config.SUT_LAN1,
                                         ethtool_stats_lan1,
@@ -189,11 +190,9 @@ class igmp_test(unittest2.TestCase):
                                         ethtool_stats_lan3,
                                         ethtool_rx_0_tx_0, self)
 
-
         self.sut.checkEthtoolStatsRange(self.config.SUT_LAN4,
                                         ethtool_stats_lan4,
                                         ethtool_rx_0_tx_0, self)
-
 
         self.sut.checkEthtoolStatsRange(self.config.SUT_LAN5,
                                         ethtool_stats_lan5,
@@ -225,7 +224,7 @@ class igmp_test(unittest2.TestCase):
             self.config.SUT_OPTICAL3)
 
         self.traffic.addUDPMulticastStream(self.config.HOST_LAN1,
-                                           '224.42.42.42', 5, 5)
+                                           '224.42.42.42', 500, 500)
         self.traffic.run()
 
         self._check_zero(ethtool_stats_lan0, ethtool_stats_lan3,
@@ -234,16 +233,15 @@ class igmp_test(unittest2.TestCase):
 
         self.sut.checkEthtoolStatsRange(self.config.SUT_LAN1,
                                         ethtool_stats_lan1,
-                                        ethtool_rx_5_tx_0, self)
+                                        ethtool_rx_500_tx_0, self)
 
         self.sut.checkEthtoolStatsRange(self.config.SUT_LAN2,
                                         ethtool_stats_lan2,
-                                        ethtool_rx_0_tx_5, self)
+                                        ethtool_rx_0_tx_500, self)
 
         self.sut.checkEthtoolStatsRange(self.config.SUT_LAN6,
                                         ethtool_stats_lan6,
-                                        ethtool_rx_0_tx_5, self)
-
+                                        ethtool_rx_0_tx_500, self)
 
     def test_07_multicast_lan2(self):
         """Send some multicast packets out LAN2. We expect to receive them on
@@ -260,7 +258,7 @@ class igmp_test(unittest2.TestCase):
             self.config.SUT_OPTICAL3)
 
         self.traffic.addUDPMulticastStream(self.config.HOST_LAN2,
-                                           '224.42.42.42', 5, 5)
+                                           '224.42.42.42', 500, 500)
         self.traffic.run()
 
         self._check_zero(ethtool_stats_lan0, ethtool_stats_lan3,
@@ -269,15 +267,15 @@ class igmp_test(unittest2.TestCase):
 
         self.sut.checkEthtoolStatsRange(self.config.SUT_LAN1,
                                         ethtool_stats_lan1,
-                                        ethtool_rx_0_tx_5, self)
+                                        ethtool_rx_0_tx_500, self)
 
         self.sut.checkEthtoolStatsRange(self.config.SUT_LAN2,
                                         ethtool_stats_lan2,
-                                        ethtool_rx_5_tx_0, self)
+                                        ethtool_rx_500_tx_0, self)
 
         self.sut.checkEthtoolStatsRange(self.config.SUT_LAN6,
                                         ethtool_stats_lan6,
-                                        ethtool_rx_0_tx_5, self)
+                                        ethtool_rx_0_tx_500, self)
 
     def test_08_multicast_lan3(self):
         """Send some multicast packets out LAN3. We expect to receive them on
@@ -294,7 +292,7 @@ class igmp_test(unittest2.TestCase):
             self.config.SUT_OPTICAL3)
 
         self.traffic.addUDPMulticastStream(self.config.HOST_LAN3,
-                                           '224.42.42.42', 5, 5)
+                                           '224.42.42.42', 500, 500)
         self.traffic.run()
 
         self._check_zero(ethtool_stats_lan0, None,
@@ -303,19 +301,19 @@ class igmp_test(unittest2.TestCase):
 
         self.sut.checkEthtoolStatsRange(self.config.SUT_LAN1,
                                         ethtool_stats_lan1,
-                                        ethtool_rx_0_tx_5, self)
+                                        ethtool_rx_0_tx_500, self)
 
         self.sut.checkEthtoolStatsRange(self.config.SUT_LAN2,
                                         ethtool_stats_lan2,
-                                        ethtool_rx_0_tx_5, self)
+                                        ethtool_rx_0_tx_500, self)
 
         self.sut.checkEthtoolStatsRange(self.config.SUT_LAN3,
                                         ethtool_stats_lan3,
-                                        ethtool_rx_5_tx_0, self)
+                                        ethtool_rx_500_tx_0, self)
 
         self.sut.checkEthtoolStatsRange(self.config.SUT_LAN6,
                                         ethtool_stats_lan6,
-                                        ethtool_rx_0_tx_5, self)
+                                        ethtool_rx_0_tx_500, self)
 
     def test_09_multicast_lan4(self):
         """Send some multicast packets out LAN4. We expect to receive them on
@@ -332,7 +330,7 @@ class igmp_test(unittest2.TestCase):
             self.config.SUT_OPTICAL3)
 
         self.traffic.addUDPMulticastStream(self.config.HOST_LAN4,
-                                           '224.42.42.42', 5, 5)
+                                           '224.42.42.42', 500, 500)
         self.traffic.run()
 
         self._check_zero(ethtool_stats_lan0, ethtool_stats_lan3,
@@ -341,20 +339,19 @@ class igmp_test(unittest2.TestCase):
 
         self.sut.checkEthtoolStatsRange(self.config.SUT_LAN1,
                                         ethtool_stats_lan1,
-                                        ethtool_rx_0_tx_5, self)
+                                        ethtool_rx_0_tx_500, self)
 
         self.sut.checkEthtoolStatsRange(self.config.SUT_LAN2,
                                         ethtool_stats_lan2,
-                                        ethtool_rx_0_tx_5, self)
-
+                                        ethtool_rx_0_tx_500, self)
 
         self.sut.checkEthtoolStatsRange(self.config.SUT_LAN4,
                                         ethtool_stats_lan4,
-                                        ethtool_rx_5_tx_0, self)
+                                        ethtool_rx_500_tx_0, self)
 
         self.sut.checkEthtoolStatsRange(self.config.SUT_LAN6,
                                         ethtool_stats_lan6,
-                                        ethtool_rx_0_tx_5, self)
+                                        ethtool_rx_0_tx_500, self)
 
     def test_10_multicast_lan5(self):
         """Send some multicast packets out LAN5. We don't expect to receive
@@ -371,7 +368,7 @@ class igmp_test(unittest2.TestCase):
             self.config.SUT_OPTICAL3)
 
         self.traffic.addUDPMulticastStream(self.config.HOST_LAN5,
-                                           '224.42.42.42', 5, 5)
+                                           '224.42.42.42', 500, 500)
         self.traffic.run()
 
         self.sut.checkEthtoolStatsRange(self.config.SUT_LAN0,
@@ -390,15 +387,13 @@ class igmp_test(unittest2.TestCase):
                                         ethtool_stats_lan3,
                                         ethtool_rx_0_tx_0, self)
 
-
         self.sut.checkEthtoolStatsRange(self.config.SUT_LAN4,
                                         ethtool_stats_lan4,
                                         ethtool_rx_0_tx_0, self)
 
-
         self.sut.checkEthtoolStatsRange(self.config.SUT_LAN5,
                                         ethtool_stats_lan5,
-                                        ethtool_rx_5_tx_0, self)
+                                        ethtool_rx_500_tx_0, self)
 
         if 'zii_devel_b' not in self.hostname:
             # The third switch does not have the hardware needed to properly
@@ -426,7 +421,7 @@ class igmp_test(unittest2.TestCase):
             self.config.SUT_OPTICAL3)
 
         self.traffic.addUDPMulticastStream(self.config.HOST_LAN6,
-                                           '224.42.42.42', 5, 5)
+                                           '224.42.42.42', 500, 500)
         self.traffic.run()
 
         self._check_zero(ethtool_stats_lan0, ethtool_stats_lan3,
@@ -435,15 +430,15 @@ class igmp_test(unittest2.TestCase):
 
         self.sut.checkEthtoolStatsRange(self.config.SUT_LAN1,
                                         ethtool_stats_lan1,
-                                        ethtool_rx_0_tx_5, self)
+                                        ethtool_rx_0_tx_500, self)
 
         self.sut.checkEthtoolStatsRange(self.config.SUT_LAN2,
                                         ethtool_stats_lan2,
-                                        ethtool_rx_0_tx_5, self)
+                                        ethtool_rx_0_tx_500, self)
 
         self.sut.checkEthtoolStatsRange(self.config.SUT_LAN6,
                                         ethtool_stats_lan6,
-                                        ethtool_rx_5_tx_0, self)
+                                        ethtool_rx_500_tx_0, self)
 
     def test_12_multicast_opticl3(self):
         """Send some multicast packets out optical3. We don't expect to receive
@@ -460,7 +455,7 @@ class igmp_test(unittest2.TestCase):
             self.config.SUT_OPTICAL3)
 
         self.traffic.addUDPMulticastStream(self.config.HOST_OPTICAL3,
-                                           '224.42.42.42', 5, 5)
+                                           '224.42.42.42', 500, 500)
         self.traffic.run()
 
         self.sut.checkEthtoolStatsRange(self.config.SUT_LAN0,
@@ -479,11 +474,9 @@ class igmp_test(unittest2.TestCase):
                                         ethtool_stats_lan3,
                                         ethtool_rx_0_tx_0, self)
 
-
         self.sut.checkEthtoolStatsRange(self.config.SUT_LAN4,
                                         ethtool_stats_lan4,
                                         ethtool_rx_0_tx_0, self)
-
 
         self.sut.checkEthtoolStatsRange(self.config.SUT_LAN5,
                                         ethtool_stats_lan5,
@@ -495,7 +488,7 @@ class igmp_test(unittest2.TestCase):
 
         self.sut.checkEthtoolStatsRange(self.config.SUT_OPTICAL3,
                                         ethtool_stats_optical3,
-                                        ethtool_rx_5_tx_0, self)
+                                        ethtool_rx_500_tx_0, self)
 
     def test_99_delete_bridge(self):
         """Destroy the bridge"""

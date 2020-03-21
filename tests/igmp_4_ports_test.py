@@ -18,14 +18,15 @@ CONFIG = None
 VLAN_FILTERING = False
 CHANNEL = None
 
-ethtool_rx_0_tx_0 = {'in_multicasts': (0, 4),
-                     'out_multicasts': (0, 4)}
+ethtool_rx_0_tx_0 = {'in_multicasts': (0, 20),
+                     'out_multicasts': (0, 20)}
 
-ethtool_rx_5_tx_0 = {'in_multicasts': (5, 9),
-                     'out_multicasts': (0, 4)}
+ethtool_rx_500_tx_0 = {'in_multicasts': (500, 520),
+                       'out_multicasts': (0, 20)}
 
-ethtool_rx_0_tx_5 = {'in_multicasts': (0, 4),
-                     'out_multicasts': (5, 9)}
+ethtool_rx_0_tx_500 = {'in_multicasts': (0, 20),
+                       'out_multicasts': (500, 520)}
+
 
 class igmp_4_port_test(unittest2.TestCase):
     '''Class containing the test cases'''
@@ -110,7 +111,7 @@ class igmp_4_port_test(unittest2.TestCase):
         ethtool_stats_lan3 = self.sut.getEthtoolStats(self.config.SUT_LAN3)
 
         self.traffic.addUDPMulticastStream(self.config.HOST_LAN1,
-                                           '224.42.42.42', 5, 5)
+                                           '224.42.42.42', 500, 500)
         self.traffic.run()
 
         self.sut.checkEthtoolStatsRange(self.config.SUT_LAN0,
@@ -119,16 +120,15 @@ class igmp_4_port_test(unittest2.TestCase):
 
         self.sut.checkEthtoolStatsRange(self.config.SUT_LAN1,
                                         ethtool_stats_lan1,
-                                        ethtool_rx_5_tx_0, self)
+                                        ethtool_rx_500_tx_0, self)
 
         self.sut.checkEthtoolStatsRange(self.config.SUT_LAN2,
                                         ethtool_stats_lan2,
-                                        ethtool_rx_0_tx_5, self)
+                                        ethtool_rx_0_tx_500, self)
 
         self.sut.checkEthtoolStatsRange(self.config.SUT_LAN3,
                                         ethtool_stats_lan3,
                                         ethtool_rx_0_tx_0, self)
-
 
     def test_06_multicast_lan2(self):
         """Send some multicast packets out LAN2. We expect to receive them on
@@ -141,7 +141,7 @@ class igmp_4_port_test(unittest2.TestCase):
         ethtool_stats_lan3 = self.sut.getEthtoolStats(self.config.SUT_LAN3)
 
         self.traffic.addUDPMulticastStream(self.config.HOST_LAN2,
-                                           '224.42.42.42', 5, 5)
+                                           '224.42.42.42', 500, 500)
         self.traffic.run()
 
         self.sut.checkEthtoolStatsRange(self.config.SUT_LAN0,
@@ -150,11 +150,11 @@ class igmp_4_port_test(unittest2.TestCase):
 
         self.sut.checkEthtoolStatsRange(self.config.SUT_LAN1,
                                         ethtool_stats_lan1,
-                                        ethtool_rx_0_tx_5, self)
+                                        ethtool_rx_0_tx_500, self)
 
         self.sut.checkEthtoolStatsRange(self.config.SUT_LAN2,
                                         ethtool_stats_lan2,
-                                        ethtool_rx_5_tx_0, self)
+                                        ethtool_rx_500_tx_0, self)
 
         self.sut.checkEthtoolStatsRange(self.config.SUT_LAN3,
                                         ethtool_stats_lan3,
@@ -171,20 +171,20 @@ class igmp_4_port_test(unittest2.TestCase):
         ethtool_stats_lan3 = self.sut.getEthtoolStats(self.config.SUT_LAN3)
 
         self.traffic.addUDPMulticastStream(self.config.HOST_LAN0,
-                                           '224.42.42.42', 5, 5)
+                                           '224.42.42.42', 500, 500)
         self.traffic.run()
 
         self.sut.checkEthtoolStatsRange(self.config.SUT_LAN0,
                                         ethtool_stats_lan0,
-                                        ethtool_rx_5_tx_0, self)
+                                        ethtool_rx_500_tx_0, self)
 
         self.sut.checkEthtoolStatsRange(self.config.SUT_LAN1,
                                         ethtool_stats_lan1,
-                                        ethtool_rx_0_tx_5, self)
+                                        ethtool_rx_0_tx_500, self)
 
         self.sut.checkEthtoolStatsRange(self.config.SUT_LAN2,
                                         ethtool_stats_lan2,
-                                        ethtool_rx_0_tx_5, self)
+                                        ethtool_rx_0_tx_500, self)
 
         self.sut.checkEthtoolStatsRange(self.config.SUT_LAN3,
                                         ethtool_stats_lan3,
@@ -200,7 +200,8 @@ class igmp_4_port_test(unittest2.TestCase):
 
         """Send some multicast packets out LAN1. We expect to receive them on
            LAN2, but not LAN0. LAN3 is not part of the bridge, it
-           should not receive them either. The SUT should get the frames on br1"""
+           should not receive them either. The SUT should get the frames on
+           br1"""
 
         ethtool_stats_lan0 = self.sut.getEthtoolStats(self.config.SUT_LAN0)
         ethtool_stats_lan1 = self.sut.getEthtoolStats(self.config.SUT_LAN1)
@@ -209,7 +210,7 @@ class igmp_4_port_test(unittest2.TestCase):
         class_stats_br1 = self.sut.getClassStats('br1')
 
         self.traffic.addUDPMulticastStream(self.config.HOST_LAN1,
-                                           '224.42.42.42', 5, 5)
+                                           '224.42.42.42', 500, 500)
         self.traffic.run()
 
         self.sut.checkEthtoolStatsRange(self.config.SUT_LAN0,
@@ -218,11 +219,11 @@ class igmp_4_port_test(unittest2.TestCase):
 
         self.sut.checkEthtoolStatsRange(self.config.SUT_LAN1,
                                         ethtool_stats_lan1,
-                                        ethtool_rx_5_tx_0, self)
+                                        ethtool_rx_500_tx_0, self)
 
         self.sut.checkEthtoolStatsRange(self.config.SUT_LAN2,
                                         ethtool_stats_lan2,
-                                        ethtool_rx_0_tx_5, self)
+                                        ethtool_rx_0_tx_500, self)
 
         self.sut.checkEthtoolStatsRange(self.config.SUT_LAN3,
                                         ethtool_stats_lan3,
