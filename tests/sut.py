@@ -18,7 +18,7 @@ STATS_FILES = ['collisions', 'multicast', 'rx_compressed',
 def dbg_print(args):
     """Print debug messages if they are enabled"""
     if DEBUG:
-        print args
+        print(args)
 
 
 class SUT(object):
@@ -78,7 +78,7 @@ class SUT(object):
         """Return a list of network interface names"""
         interfaces = []
         results = self.ssh('ip link show')
-        pattern = re.compile('[0-9]+: ([a-z0-9]+)')
+        pattern = re.compile('[0-9]+: ([a-z0-9_]+)')
         for line in results.splitlines():
             match = pattern.match(line)
             if match:
@@ -329,7 +329,6 @@ class SUT(object):
             return False
         return True
 
-
     def _statsCheckRangeFail(self, key, value, range1, range2, unittest):
         """Test has failed, report why"""
         if key in range1.keys() and key in range2.keys():
@@ -473,7 +472,8 @@ class SUT(object):
                       (interface.startswith('lan') or
                        interface.startswith('optical') or
                        interface.startswith('net') or
-                       interface.startswith('port')) and
+                       interface.startswith('port') or
+                       interface.startswith('eth_cu')) and
                       not interface.startswith(self.mgmt)]
 
         if len(bonds):
